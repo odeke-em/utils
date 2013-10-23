@@ -56,7 +56,12 @@ function main() {
   done
 }
 
-if [ $1 == "main" ]
+if [ $# -lt 1 ] 
 then
-  main
+  echo "Usage:: $0"
+else
+  if [ $1 == "main" ]
+  then 
+    main
+  fi
 fi
