@@ -5,12 +5,13 @@
 
 function map() {
   declare -a mappedResult 
-  test $# -gt 1 || eval "echo Two args expected \<iterator\> \<function\> && exit"
+  test $# -gt 1 || eval "echo Expected:: [\<function\>,\<iterator\>] && exit"
   mapFunc=$1
   shift 1
 
   for arg in $*
   do
+    echo $arg
     result=$(eval $mapFunc "$arg")
     mappedResult+=$result" "
   done
@@ -26,7 +27,6 @@ function reduce() {
   currentElem=""
   while [ $# -gt 0 ]
   do 
-    #test $currentElem || break;
     prevElem=$currentElem
     currentElem=$1
 
@@ -39,16 +39,16 @@ function reduce() {
 }
 
 function rmSpaces() {
+  echo $1
   test -e $1 || eval "echo Expecting valid existant filepaths && exit";
-  #echo "In rmSpaces"
-  #Making the path lower case and transforming all spaces to underscores
-  modF=$(echo "$@" | tr A-Z a-z | sed s/" "/_/g)
+
+  #Transforming all spaces to underscores
+  modF=$(echo "$@" | sed s/" "/_/g)
   echo "$modF"
 }
 
 function main() {
-  mapRes=$(map "expr 2 \* " $(seq 1 10))
-  reduce "echo " $(ls /)
+  mapRes=$(map "rmSpaces" $(find ~/Downloads))
 
   for mp in ${mapRes}
   do
@@ -56,12 +56,13 @@ function main() {
   done
 }
 
-if [ $# -lt 1 ] 
-then
-  echo "Usage:: $0"
+triggerArg="main"
+
+[ $# -lt 1 ] && echo "Usage:: $0 $triggerArg" && exit;
+
+if [ $1 ==  $triggerArg ]
+then 
+  main
 else
-  if [ $1 == "main" ]
-  then 
-    main
-  fi
+  echo "Psst, try passing '$triggerArg' as the first argument"
 fi
