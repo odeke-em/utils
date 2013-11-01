@@ -6,6 +6,8 @@ import os
 import sys
 from time import ctime
 
+from optparse import OptionParser
+
 getUserName = lambda : os.environ.get("LOGNAME", "Anonymous")
 
 class Logger(object):
@@ -32,6 +34,8 @@ class Logger(object):
     self.__fp.write("%s\n"%(os.environ))
 
   def writeEntry(self, msg):
+    if not msg: return
+
     if self.__DEBUG:
       self.__logMetaInfo()
 
@@ -51,12 +55,32 @@ class Logger(object):
       self.writeEntry(funct(args, kwargs))
 
     return prettyFunc 
-    
 
-@Logger("NOTES.txt", getUserName())
-def main(*args, **kwargs):
-  notes = input("Your notes here: ")
-  return notes
+def cliParser():
+  parser = OptionParser()
+  parser.add_option('-u', '--username', dest="username", default=getUserName())
+  parser.add_option('-t', '--target', dest="target", default="NOTES.txt")
+
+  args, options = parser.parse_args()
+  return args, options
+
+def noteLogger(notesFile, username):
+  @Logger(notesFile, username)
+  def newNoteTaker(*args, **kwargs):
+    notes = input("Your notes here: ")
+    return notes
+
+  return newNoteTaker
+
+def main():
+  parser = cliParser()
+  args, options = parser
+
+  username =  args.username
+  notesFile =  args.target
+
+  functor = noteLogger(notesFile, username)
+  functor()
 
 if __name__ == '__main__': 
   main()
