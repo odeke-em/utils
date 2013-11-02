@@ -12,12 +12,10 @@ getUserName = lambda : os.environ.get("LOGNAME", "Anonymous")
 
 class Logger(object):
   def __init__(self, outPath, username):
-    self.__fp = None
+    self.__fp = -1
     self.__outPath = outPath
     self.__username = username
     self.__DEBUG = False
-
-    self.__initLogFile()
 
   def setDebugLevel(self, debugStatus):
     self.__DEBUG = debugStatus
@@ -27,20 +25,28 @@ class Logger(object):
     if self.__fp == -1:
       raise Exception("Failed to initiated logfile %s"%(self.__outPath))
 
+  def writeToLog(self, msg):
+    if self.__fp == -1:
+      self.__initLogFile()
+
+    self.__fp.write(msg)
+
   def __logTime(self):
-    self.__fp.write("%s [%s]\n"%(self.__username, ctime()))
+    self.writeToLog("%s [%s]\n"%(self.__username, ctime()))
 
   def __logMetaInfo(self):
-    self.__fp.write("%s\n"%(os.environ))
+    self.writeToLog("%s\n"%(os.environ))
 
   def writeEntry(self, msg):
+    # Logs the message 'msg' to the logfile
+    # Note: Will not write to logfile unless the message is not EMPTY!
     if not msg: return
 
     if self.__DEBUG:
       self.__logMetaInfo()
 
-    self.__fp.write(msg)
-    self.__fp.write("\n")
+    self.__logTime()
+    self.writeToLog(msg+"\n")
    
   def __flush(self):
     if hasattr("flush", self.__fp): 
@@ -51,7 +57,6 @@ class Logger(object):
 
   def __call__(self, funct):
     def prettyFunc(*args, **kwargs):
-      self.__logTime()
       self.writeEntry(funct(args, kwargs))
 
     return prettyFunc 
@@ -59,7 +64,7 @@ class Logger(object):
 def cliParser():
   parser = OptionParser()
   parser.add_option('-u', '--username', dest="username", default=getUserName())
-  parser.add_option('-t', '--target', dest="target", default="NOTES.txt")
+  parser.add_option('-n', '--noteFile', dest="noteFile", default="NOTES.txt")
 
   args, options = parser.parse_args()
   return args, options
@@ -67,7 +72,11 @@ def cliParser():
 def noteLogger(notesFile, username):
   @Logger(notesFile, username)
   def newNoteTaker(*args, **kwargs):
-    notes = input("Your notes here: ")
+    try:
+      notes = input("\033[92mYour notes here: \033[00m")
+    except KeyboardInterrupt:
+      return None
+
     return notes
 
   return newNoteTaker
@@ -77,7 +86,7 @@ def main():
   args, options = parser
 
   username =  args.username
-  notesFile =  args.target
+  notesFile =  args.noteFile
 
   functor = noteLogger(notesFile, username)
   functor()
