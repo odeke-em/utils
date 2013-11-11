@@ -5,20 +5,19 @@
 import re
 import os
 import sys
-import shutil
+import shutil # Module that contains the copy utilities
 from hashlib import md5
-from stat import S_ISREG, S_ISDIR
 
 # Global variable
 DEBUG = True
 
-allCompile = re.compile("^[aA](ll)?", re.IGNORECASE)
-yesCompile = re.compile("^[yY](es)?", re.IGNORECASE)
+allCompile = re.compile("^[a]+(ll)?", re.IGNORECASE)
+yesCompile = re.compile("^[y]+(es)?", re.IGNORECASE)
 
 # Helper functions
 pathExists = lambda aPath : aPath and os.path.exists(aPath)
 
-# Affix path
+# Affix path ie concatenate the parent to the child ie parent/child
 affixPath = lambda parent, child : os.path.join(parent, child)
 
 # Permission handlers
@@ -28,18 +27,17 @@ canExecute = lambda path : pathExists(path) and os.access(path, os.X_OK)
 canDelete = canWrite
 
 # Helper functions for deleting
-rmPath = os.unlink
-rmDir = os.rmdir
+rmPath = os.unlink # For deleting regular files
+rmDir = os.rmdir   # For deleting directories
 
 def getMd5(path):
-  # For debugging purposes
   # Function to return the md5 hex digest of a file 
   if pathExists(path):
     f = open(path, "rb") # Notice we'll be reading the data as bytes
     dBuffer = f.read()
     
     # Don't forget to close your file
-    f.close
+    f.close()
     return md5(dBuffer).hexdigest()
 
     # Even fancier
@@ -47,11 +45,9 @@ def getMd5(path):
     #   dBuffer = f.read()
     #   return md5.hexdigest(dBuffer)
 
-def getStatDict(path):
-  if pathExists(path):
-    return os.stat(path)
-
 def walkAndMap(dirPath, pathsFunctor, dirFunctor=None):
+  # pathsFunctor : function to be applied on each of the paths
+  # dirFunctor : function to be applied on each of the directories
   pathGen = os.walk(dirPath)
 
   for root, dirs, paths in pathGen:
@@ -67,7 +63,10 @@ def walkAndMap(dirPath, pathsFunctor, dirFunctor=None):
     else:
       returnCombo = functdPaths
 
-    yield returnCombo
+    yield returnCombo # yield keyword makes this function, a generator
+                      # ie returns an iterator whose content is handed out
+                      # per every invokation of '__next__()' -- think
+                      # of a card dealer, you ask to be hit with the next card
 
 def getFunctedPaths(path, pathFunctor):
   # Function to map the pathFunctor over all the paths
@@ -82,6 +81,7 @@ def getFunctedPaths(path, pathFunctor):
       break
     else:
       for p, functdP in mapResults:
+        if DEBUG: print(p)
         resultsDict.setdefault(functdP, p)
         # Python is not a fan of mixing tabs and spaces
 
@@ -110,12 +110,14 @@ def makeBackUp(path):
   shutil.copytree(src=path, dest=backUpPath)
 
 def delDupsFromP2(src, dest):
+  # Function to delete duplicates from 'dest' that are present in 'src'
   duplicates = getDuplicates(src, dest)
   ignoreAll = False
 
   for destP, srcP in duplicates:
     if canDelete(destP):
        if not ignoreAll:
+          if DEBUG: print("%s and %s are the same"%(destP, srcP))
           promptForDel = input("Delete %s? [Y]es, [N]o or [A]ll? "%(destP))
           ignoreAll = (allCompile.match(promptForDel) != None)
            
@@ -128,13 +130,14 @@ def delDupsFromP2(src, dest):
 def main():
   argc = len(sys.argv) # Catching our argument count
 
-  # Time to capture results from the commandline
+  # Time to capture arguments from the commandline
   if (argc != 3):
-    print("\033[33mDupPath deletor: [primaryPath secondaryPath] ")
+    print("\033[33mDupPath deletor: [primaryPath secondaryPath] \033[00m")
     return
   else:
-    duplist = getDuplicates(sys.argv[1], sys.argv[2])
-    delDupsFromP2(sys.argv[1], sys.argv[2])
+    primaryPath, secondaryPath = sys.argv[1], sys.argv[2]
+    duplist = getDuplicates(primaryPath, secondaryPath)
+    delDupsFromP2(primaryPath, secondaryPath)
 
 if __name__ == '__main__':
   main()
