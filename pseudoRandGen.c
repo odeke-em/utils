@@ -1,6 +1,6 @@
 /* 
   Author: Emmanuel Odeke <odeke@ualberta.ca>
-  Theory for pseudo random generation obtained for:
+  Theory for pseudo random generation obtained from:
     http://www.math.utah.edu/~pa/Random/Random.html
     Given p1, p2, N(limit), and x0
     Recurrance formula: xN+1 = (x0*p1) + p2 (mod N)
