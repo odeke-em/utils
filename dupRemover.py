@@ -7,12 +7,15 @@ import os
 import sys
 import shutil # Module that contains the copy utilities
 from hashlib import md5
+from threading import Thread
 
 # Global variable
 DEBUG = True
 
 allCompile = re.compile("^[a]+(ll)?", re.IGNORECASE)
 yesCompile = re.compile("^[y]+(es)?", re.IGNORECASE)
+
+stPrint = lambda msg: sys.stderr.write(msg+'\n') and sys.stderr.flush()
 
 # Helper functions
 pathExists = lambda aPath : aPath and os.path.exists(aPath)
@@ -29,6 +32,22 @@ canDelete = canWrite
 # Helper functions for deleting
 rmPath = os.unlink # For deleting regular files
 rmDir = os.rmdir   # For deleting directories
+
+class CustomThread(Thread):
+  # Thread subclass that enables us to query
+  # it for results from running a function
+  def __init__(self, target, args):
+    super().__init__()
+    self.__funcToRun = target
+    self.__args = args
+    self.__results = None
+
+  def run(self):
+    # print("Args ", self.__args)
+    self.__results = self.__funcToRun(*self.__args)
+
+  def getResults(self):
+    return self.__results
 
 def getMd5(path):
   # Function to return the md5 hex digest of a file 
@@ -53,7 +72,7 @@ def walkAndMap(dirPath, pathsFunctor, dirFunctor=None):
   for root, dirs, paths in pathGen:
     # Applying the functor on each of the paths
     # More debugging
-    # print(paths)
+    # stPrint(paths)
     affixedPaths = map(lambda p : affixPath(root, p), paths)
     functdPaths = map(lambda p : (p, pathsFunctor(p)), affixedPaths)
 
@@ -71,6 +90,8 @@ def walkAndMap(dirPath, pathsFunctor, dirFunctor=None):
 def getFunctedPaths(path, pathFunctor):
   # Function to map the pathFunctor over all the paths
   # and return a dictionary/hashMap of each result 
+  # Note: This will return a hashMap whose keys will be buckets
+  # ie similar entries grouped together in one dictionary
   mappedGen = walkAndMap(path, pathFunctor)
 
   resultsDict = dict()
@@ -81,28 +102,57 @@ def getFunctedPaths(path, pathFunctor):
       break
     else:
       for p, functdP in mapResults:
-        if DEBUG: print(p)
-        resultsDict.setdefault(functdP, p)
-        # Python is not a fan of mixing tabs and spaces
+        if DEBUG: stPrint(p)
+        elemBucket = resultsDict.get(functdP, {})
+
+        # Placing all duplicates in the specific path in the same bucket
+        # Assuming that each file name is unique map each path to itself
+	# The use of a dict to handle duplicates and thus ease up with
+        # insertions
+        elemBucket.setdefault(p, p)
+
+        # if len(elemBucket) > 1: print(elemBucket)
+
+        resultsDict[functdP] = elemBucket
 
   return resultsDict
 
 def getDuplicates(path1, path2):
   # Returns the intersection of path1 and path2
-  # ie files that are in path1 and path2
-  p1functdDict = getFunctedPaths(path1, getMd5)
-  p2functdDict = getFunctedPaths(path2, getMd5)
+  # ie file buckets whose identifier is similar 
+  # across both path1 and path2
+
+  # Let's exploit some concurrency
+  # def getFunctedPaths(path, pathFunctor):
+  p1Thread = CustomThread(
+    getFunctedPaths, (path1, getMd5)
+  )
+  p2Thread = CustomThread(
+    getFunctedPaths, (path2, getMd5)
+  )
+
+  p1Thread.start()
+  p2Thread.start()
+
+  p1Thread.join()
+  p2Thread.join()
+
+  p1functdDict = p1Thread.getResults()
+  p2functdDict = p2Thread.getResults()
 
   dupsFromP2 = list()
   for p2Md5Hash in p2functdDict:
-    p1EquivPath = p1functdDict.get(p2Md5Hash, None)
+    p1EquivBucket = p1functdDict.get(p2Md5Hash, None)
     # Lookup time for dictionary elements should be O(1) 
     # if hashlist implementation has no collisions else 
     # it is O(n) but this rarely happens
-    if p1EquivPath:
-      dupTuple = (p2functdDict[p2Md5Hash], p1EquivPath)
+    if p1EquivBucket:
+      dupTuple = (p2functdDict[p2Md5Hash], p1EquivBucket)
       dupsFromP2.append(dupTuple)
 
+  # This list is going to contain buckets/hash lists of paths
+  # of which each bucket contains paths of files that are
+  # duplicates within the same directory
   return dupsFromP2
      
 def makeBackUp(path): 
@@ -114,16 +164,23 @@ def delDupsFromP2(src, dest):
   duplicates = getDuplicates(src, dest)
   ignoreAll = False
 
-  for destP, srcP in duplicates:
-    if canDelete(destP):
+  for destBucket, srcBucket in duplicates:
+    srcBucketIter = iter(srcBucket)
+    # Just getting a sample element whose value will be used for display
+    srcBucketHead =  srcBucketIter.__next__() 
+
+    for destP in destBucket:
+     if canDelete(destP):
        if not ignoreAll:
-          if DEBUG: print("%s and %s are the same"%(destP, srcP))
-          promptForDel = input("Delete %s? [Y]es, [N]o or [A]ll? "%(destP))
+          if DEBUG: stPrint("%s and %s are the same"%(destP, srcBucketHead))
+          promptForDel = input(
+            "\033[32mDelete %s? [Y]es, [N]o or [A]ll? \033[00m"%(destP)
+          )
           ignoreAll = (allCompile.match(promptForDel) != None)
            
        if ignoreAll or yesCompile.match(promptForDel):
           if DEBUG:
-            print("Deleting %s\n"%(destP))
+            stPrint("Deleting %s\n"%(destP))
 
           rmPath(destP)
 
@@ -132,11 +189,12 @@ def main():
 
   # Time to capture arguments from the commandline
   if (argc != 3):
-    print("\033[33mDupPath deletor: [primaryPath secondaryPath] \033[00m")
+    stPrint("\033[33mDupPath deletor: [primaryPath secondaryPath] \033[00m")
     return
   else:
     primaryPath, secondaryPath = sys.argv[1], sys.argv[2]
-    duplist = getDuplicates(primaryPath, secondaryPath)
+    # duplist = getDuplicates(primaryPath, secondaryPath)
+    # if DEBUG: print(duplist)
     delDupsFromP2(primaryPath, secondaryPath)
 
 if __name__ == '__main__':
