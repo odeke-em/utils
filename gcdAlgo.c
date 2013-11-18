@@ -23,15 +23,21 @@ int wholeMultiplier(const int subject, const int query) {
 
 void gcd(int b, int a) {
   if (a <= 0 || b <= 0) return;
-  if (a > b) return;
+  if (a > b) {
+    // Xor swap here
+    a ^= b;
+    b ^= a;
+    a ^= b;
+  }
   
   int multipFactor = wholeMultiplier(b, a),
       residue = b - (a * multipFactor); 
 
+  if (! residue) return;
+
 #ifdef DEBUG
   printf("%d - %d * %d = %d\n", b, a, multipFactor, residue);
 #endif
-
   gcd(a, residue);
 }
 
