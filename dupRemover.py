@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 # Author: Emmanuel Odeke <odeke@ualberta.ca>
+# Utility to remove duplicate paths from different directories
+# For help: invoked the module with no arguments
 
 import re
 import os
@@ -193,8 +195,6 @@ def main():
     return
   else:
     primaryPath, secondaryPath = sys.argv[1], sys.argv[2]
-    # duplist = getDuplicates(primaryPath, secondaryPath)
-    # if DEBUG: print(duplist)
     delDupsFromP2(primaryPath, secondaryPath)
 
 if __name__ == '__main__':
