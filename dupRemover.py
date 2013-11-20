@@ -54,17 +54,22 @@ class CustomThread(Thread):
 def getMd5(path):
   # Function to return the md5 hex digest of a file 
   if pathExists(path):
-    f = open(path, "rb") # Notice we'll be reading the data as bytes
-    dBuffer = f.read()
+    if canRead(path):
+      # if DEBUG: print("Applying MD5 on ", path)
+      f = open(path, "rb") # Notice we'll be reading the data as bytes
+      dBuffer = f.read()
     
-    # Don't forget to close your file
-    f.close()
-    return md5(dBuffer).hexdigest()
+      # Don't forget to close your file
+      f.close()
+      return md5(dBuffer).hexdigest()
 
-    # Even fancier
-    # with f as open(path, "rb"):
-    #   dBuffer = f.read()
-    #   return md5.hexdigest(dBuffer)
+      # Even fancier
+      # with f as open(path, "rb"):
+      #   dBuffer = f.read()
+      #   return md5.hexdigest(dBuffer)
+    else:
+      if DEBUG: 
+        stPrint("\033[31mYou have no read access to %s\033[00m"%(path))
 
 def walkAndMap(dirPath, pathsFunctor, dirFunctor=None):
   # pathsFunctor : function to be applied on each of the paths
@@ -137,7 +142,9 @@ def getDuplicates(path1, path2):
   p2Thread.start()
 
   p1Thread.join()
+  print("\033[31mP1Th done joining\033[00m")
   p2Thread.join()
+  print("\033[31mP2Th done joining\033[00m")
 
   p1functdDict = p1Thread.getResults()
   p2functdDict = p2Thread.getResults()
@@ -182,7 +189,7 @@ def delDupsFromP2(src, dest):
            
        if ignoreAll or yesCompile.match(promptForDel):
           if DEBUG:
-            stPrint("Deleting %s\n"%(destP))
+            stPrint("Deleting %s"%(destP))
 
           rmPath(destP)
 
