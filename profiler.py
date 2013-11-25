@@ -41,9 +41,54 @@ def cachingFactorial(n):
 
     return value
 
+def nChooseK(n, k):
+  f = cachingFactorial
+
+  # (n k) = n!/(k!(n-k)!)
+  nf = f(n)
+  nfk = f(n-k)
+  kf = f(k)
+
+  return nf/(kf * nfk)
+
+def callFib(n):
+  cache.clear()
+
+  return fibonacci(n)
+
+@profiled
+def fibonacci(n):
+  if n <= 2:
+    return 1
+
+  memoized = cache.get(n, 0)
+  if not memoized:
+      # Trying to cut down as much function overhead as possible
+     prev1 = cache.get(n-1, 0)
+     if not prev1:
+       prev1 = fibonacci(n-1)
+
+     prev2 = cache.get(n-2, 0)
+     if not prev2:
+       prev2 = fibonacci(n-2)
+
+     memoized = prev1 + prev2 
+     cache[n] = memoized
+
+  return memoized
+
 def main():
-  for i in range(200):
-    print(cachingFactorial(i))
+  # for i in range(200):
+  #   print(cachingFactorial(i))
+  # n = 15
+  # k = 6
+  # res = nChooseK(n, k)
+  # print(143*9)
+  # print(res)
+
+  for i in range(10000):
+    fibonacci(i)
+  print(fibonacci(10000))
 
 if __name__ == '__main__':
   main()
