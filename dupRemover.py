@@ -168,7 +168,34 @@ def makeBackUp(path):
   backUpPath = "%s_backUp"%(path)
   shutil.copytree(src=path, dest=backUpPath)
 
-def delDupsFromP2(src, dest):
+def uniPathDupDelete(dirPath):
+  # Function to remove duplicate elements from a single directory
+  hashedPaths = getFunctedPaths(dirPath, getMd5)
+  for p in hashedPaths:
+    pBucket = hashedPaths[p]
+    pBuckIter = iter(pBucket)
+
+    # Remove the head element from the bucket and purge the rest
+    headElem = pBuckIter.__next__()
+    # print(headElem)
+
+    for mForDel in pBuckIter:
+      if canDelete(mForDel):
+         if DEBUG: 
+            stPrint("%s and %s are the same"%(headElem, mForDel))
+         promptForDel = input(
+           "\033[92mDelete %s? [Y]es, [N]o or [A]ll? \033[00m"%(mForDel)
+         )
+
+         ignoreAll = (allCompile.match(promptForDel) != None)
+           
+         if ignoreAll or yesCompile.match(promptForDel):
+            if DEBUG:
+               stPrint("Deleted %s"%(mForDel))
+
+            rmPath(mForDel)
+ 
+def delDupsFromP2(src, dest, purgeSrcDups=False):
   # Function to delete duplicates from 'dest' that are present in 'src'
   duplicates = getDuplicates(src, dest)
   ignoreAll = False
@@ -192,7 +219,6 @@ def delDupsFromP2(src, dest):
             stPrint("Deleting %s"%(destP))
 
           rmPath(destP)
-
 def main():
   argc = len(sys.argv) # Catching our argument count
 
