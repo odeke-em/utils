@@ -1,5 +1,3 @@
-// Author: Emmanuel Odeke <odeke@ualberta.ca>
-
 #ifndef _HASHLIST_H
 #define _HASHLIST_H
 
@@ -31,4 +29,8 @@
   Element *addToTail(Element *sl, void *data, const Bool overWriteOnDup);
 
   void destroySList(Element *sl);
+
+  inline int getSize(HashList *hl);
+
+  Element *pop(HashList *hM, const hashValue hashCode);
 #endif

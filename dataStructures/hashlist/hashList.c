@@ -14,9 +14,9 @@
 
 #define HANDLE_COLLISIONS
 
-inline Bool hasNext(Element *e) { return e->next != NULL; }
-
+inline Bool hasNext(Element *e) { return e != NULL && e->next != NULL; }
 inline Element *getNext(Element *e) { return e == NULL ? NULL : e->next; }
+inline int getSize(HashList *hl) { return hl == NULL ? 0 : hl->size; }
 
 Element *addToTail(Element *sl, void *data, const Bool overWriteOnDup) {
   if (sl == NULL) {
@@ -121,6 +121,19 @@ void destroySList(Element *sl) {
 
 }
 
+Element *pop(HashList *hM, const hashValue hashCode) {
+  Element *pElement = NULL;
+
+  if (getSize(hM)) {
+    unsigned int calcIndex = hashCode % getSize(hM);
+    pElement = hM->list[calcIndex];
+    hM->list[calcIndex] = NULL;
+  }
+
+  printf("hPElement: %p\n", pElement);
+  return pElement;
+}
+
 void destroyHashList(HashList *hl) {
   if (hl != NULL) {
     int i;
@@ -137,14 +150,14 @@ void destroyHashList(HashList *hl) {
     hl = NULL;
   }
 }
-
+#ifdef SAMPLE_RUN
 int main() {
   HashList *hl = NULL;
   char *tmp = (char *)malloc(4);
   hl = initHashList(hl);
 
   int i;
-  for (i=0; i < 1000000; i++) {
+  for (i=0; i < 10000; i++) {
     int *x = (int *)malloc(sizeof(int));
     *x = i;
     insertElem(hl, x, i);
@@ -153,13 +166,24 @@ int main() {
   printf("hl %p\n", hl);
 
   Element *found = get(hl, 101);  
+  Element *popd = pop(hl, 101);
 
+  printf("Found: %p\n", found);
   while (hasNext(found)) {
+    printf("Found: %p\n", found);
     found = getNext(found);
     printf("%d\n", *((int *)found->value));
   }
 
   insertElem(hl, tmp, 2);
   destroyHashList(hl);
+  Element *savHead = popd;
+  while (hasNext(popd)) {
+    popd = getNext(popd);
+    printf("%d\n", *((int *)popd->value));
+  }
+
+  destroySList(savHead);
   return 0;
 }
+#endif
