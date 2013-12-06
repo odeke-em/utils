@@ -26,6 +26,7 @@
   Element *initElement(Element *);
   HashList *initHashList(HashList *);
 
+  Element *addToHead(Element *sl, void *data);
   Element *addToTail(Element *sl, void *data, const Bool overWriteOnDup);
 
   void destroySList(Element *sl);

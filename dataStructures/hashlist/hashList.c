@@ -35,6 +35,20 @@ Element *addToTail(Element *sl, void *data, const Bool overWriteOnDup) {
   return sl;
 }
 
+Element *addToHead(Element *sl, void *data) {
+  if (sl != NULL) {
+    sl = initElement(sl);
+  }
+
+  Element *newElem = NULL;
+  newElem = initElement(newElem);
+  newElem->value = data;
+  newElem->next = sl;
+  sl = newElem;
+
+  return sl;
+}
+
 Element *initElement(Element *elem) {
   if (elem == NULL) {
     elem = (Element *)malloc(sizeof(Element));
@@ -150,6 +164,7 @@ void destroyHashList(HashList *hl) {
     hl = NULL;
   }
 }
+
 #ifdef SAMPLE_RUN
 int main() {
   HashList *hl = NULL;
@@ -178,6 +193,7 @@ int main() {
   insertElem(hl, tmp, 2);
   destroyHashList(hl);
   Element *savHead = popd;
+
   while (hasNext(popd)) {
     popd = getNext(popd);
     printf("%d\n", *((int *)popd->value));
