@@ -24,6 +24,7 @@
   inline Element *getNext(Element *);
 
   Element *initElement(Element *);
+  HashList *initHashListWithSize(HashList *hl, const int size);
   HashList *initHashList(HashList *);
 
   Element *addToHead(Element *sl, void *data);

@@ -60,24 +60,35 @@ Element *initElement(Element *elem) {
   return elem;
 }
 
-HashList *initHashList(HashList *hl) {
+HashList *initHashListWithSize(HashList *hl, const int size) {
   if (hl == NULL) {
     hl = (HashList *)malloc(sizeof(HashList));
     raiseExceptionIfNull(hl);
   }
 
-  // All attributes are set to NULL
-  hl->size = INIT_HASH_LIST_SIZE;
-#ifdef DEBUG
-  printf("%s:: %d\n", __func__, hl->size);
-#endif
-  if ((hl->list = (Element **)malloc(sizeof(Element *) * hl->size)) == NULL) {
-    free(hl);
-    raiseError(
-     "Run out of memory, trying to create space for a hashlist's list attribute"    );
+  if (size > 0) {
+    hl->size = size;
+  #ifdef DEBUG
+    printf("%s:: %d\n", __func__, hl->size);
+  #endif
+    if ((hl->list = (Element **)malloc(sizeof(Element *) * hl->size)) == NULL) {
+      free(hl);
+      raiseError(
+      "Run out of memory, trying to create space for a hashlist's list attribute"     );
+    }
+
+    int i;
+    // All elements set to NULL
+    for (i=0; i < hl->size; ++i) {
+      hl->list[i] = NULL;
+    }
   }
 
   return hl;
+}
+
+HashList *initHashList(HashList *hl) {
+  return initHashListWithSize(hl, INIT_HASH_LIST_SIZE);
 }
 
 void insertElem(HashList *hl, void *data, const hashValue hashCode) {
@@ -87,7 +98,7 @@ void insertElem(HashList *hl, void *data, const hashValue hashCode) {
 
   if (hl->size == 0) {
     printf("HashList size is zero, initializing it now\n");
-    initHashList(hl);
+    hl = initHashList(hl);
     assert(hl->size != 0);
   }
 
