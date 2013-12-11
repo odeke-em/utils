@@ -93,25 +93,24 @@ long long int reduce(Node *src) {
   return result;
 }
 
-Node *map(Node *src, int (*func)(const Node *)) {
+Node *map(Node *src, int (*func)(const void *)) {
   Node *mapped = NULL;
   Node *trav = src;
   while (trav != NULL) {
-    mapped = addNode(mapped, func(trav));
+    mapped = addNode(mapped, func(&trav->data));
     trav = trav->next;
   }
 
   return mapped;
 }
 
-int square(const Node *n) {
-  int result = 0;
-  if (n != NULL) {
-    result = n->data;
-    result *= result;
+int squareAsInts(const void *data) {
+  if (data  != NULL) {
+    int result = *(int *)data;
+    return result * result;
   }
 
-  return result;
+  return 0;
 }
 
 int getMax(Node *src) {
@@ -186,7 +185,7 @@ int main() {
   n = addNode(n, 3);
   n = addNode(n, 8);
 
-  for (i=0; i <= 30000; ++i)
+  for (i=20; i <= 370; ++i)
     n = addNode(n, i);
 
   n = addNode(n, 1);
@@ -194,7 +193,7 @@ int main() {
   n = addNode(n, 99);
   n = addNode(n, 8898);
 
-  Node *mpd = map(n, square);
+  Node *mpd = map(n, squareAsInts);
   mpd = radixSort(mpd, 10);
 
   long long int reducedValue = reduce(n);
