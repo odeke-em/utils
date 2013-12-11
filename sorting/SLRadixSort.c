@@ -18,11 +18,11 @@ inline void *allocMgr(ssize_t sz) {
   void *newMem = NULL;
   if (sz > 0) {
     newMem = malloc(sz);
-  }
 
-  if (newMem == NULL) {
-    raiseWarning("Run-out of memory!");
-    exit(-1);
+    if (newMem == NULL) {
+      raiseWarning("Run-out of memory!");
+      exit(-1);
+    }
   }
 
   return newMem;
