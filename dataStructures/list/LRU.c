@@ -23,8 +23,7 @@ Cache *purgeLRU(Cache *c) {
     Node *it = c->head, *end = c->tail, *prev = c->head;
     while (it != NULL) {
       if (it->tag == 0) { // Hasn't been accessed since the last cycle
-	prev->next = it->next;
-
+   
 	if (it->data != NULL) {
 	#ifdef DEBUG
 	  printf("Purging: %d\n", *(int *)it->data);
@@ -33,7 +32,14 @@ Cache *purgeLRU(Cache *c) {
 	  it->data = NULL;
 	}
 
-	it = prev->next;
+	if (prev == NULL) {
+	  c->head = prev = it->next;
+	  free(it);
+	  it = prev;
+	} else {
+	  prev = it->next;
+	  it = it->next;
+	}
       } else {
       #ifdef DEBUG
 	printf("Couldn't purge: %d\n", *(int *)it->data);
@@ -70,7 +76,7 @@ int main() {
   c = setTagValue(c, 0);
   printf("\n");
 
-  for (i= 2; i < 5; ++i) {
+  for (i= 2; i < 8; ++i) {
     c = accessMember(c, &i, intPtrComp);
   }
 
@@ -81,17 +87,17 @@ int main() {
   printList(c);
   printf("\n");
   printf("Next cycle\n");
+
   // Next cycle
   c = setTagValue(c, 0);
 
-
-  for (i=10; i < 25; ++i) {
+  for (i=0; i < 15; ++i) {
     int *newI = (int *)malloc(sizeof(int));
     *newI = i;
     c = append(c, newI);
   }
 
-  for (i=12; i < 23; ++i) {
+  for (i=0; i < 10; ++i) {
     c = accessMember(c, &i, intPtrComp);
   }
 
@@ -102,6 +108,10 @@ int main() {
   printf("\nAfter purge 2\n");
   printList(c);
   printf("\n");
+
+  // Next cycle
+  c = setTagValue(c, 0);
+
   destroyList(c);
   return 0;
 }
