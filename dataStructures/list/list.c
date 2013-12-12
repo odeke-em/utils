@@ -161,15 +161,18 @@ List *removeElem(List *l, void *query, Comparator matchFunc) {
       cur = cur->next;
     }
 
-    if (prev != NULL) {
-      prev->next = NULL;
-      if (cur != NULL) {
+    if (cur != NULL) {
+      if (prev != NULL) {
 	prev->next = cur->next;
-	if (cur->data != NULL) free(cur->data);
-	free(cur);
-	cur = NULL;
+      } else {
+	l->head = prev = cur->next;
       }
+	
+      if (cur->data != NULL) free(cur->data);
+      free(cur);
+      cur = NULL;
     }
+    
   }
   return l;
 }
@@ -177,7 +180,7 @@ List *removeElem(List *l, void *query, Comparator matchFunc) {
 int main() {
   int i;
   List *l = NULL;
-  for (i=0; i < 10000; ++i) {
+  for (i=0; i < 40; ++i) {
     int *tp = (int *)malloc(sizeof(int));
     *tp = i;
     l = append(l, tp);
@@ -189,8 +192,8 @@ int main() {
   printList(l);
   printf("\n");
 
-  for (i=2; i < 10000; ++i)
-    l = removeElem(l, &i, intPtrComp);
+  i = 8;
+  l = removeElem(l, &i, intPtrComp);
 
   printList(l);
   printf("\n");
