@@ -37,6 +37,7 @@ Node *initNode(Node *n) {
   if (n != NULL) {
     n->data = NULL;
     n->next = NULL;
+    n->tag = 0;
   }
 
   return n;
@@ -125,7 +126,7 @@ void printList(List *l) {;
     Node *it = l->head, *end = l->tail;
     do {
       if (it == NULL) break;
-      if (it->data  != NULL) printf(" %d ", *(int *)it->data);
+      if (it->data  != NULL) printf(" %d:%d ", *(int *)it->data, it->tag);
       it = it->next;
     } while (it != end);
   }
@@ -143,6 +144,7 @@ Node *find(List *l, void *query, Comparator matchFunc) {;
 	result = it;
 	break;
       }
+      it = it->next;
     } while (it != NULL);
   }
 
@@ -171,7 +173,7 @@ List *removeElem(List *l, void *query, Comparator matchFunc) {
   }
   return l;
 }
-
+#ifdef SAMPLE_RUN
 int main() {
   int i;
   List *l = NULL;
@@ -195,3 +197,4 @@ int main() {
   destroyList(l);
   return 0;
 }
+#endif

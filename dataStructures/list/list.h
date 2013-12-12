@@ -8,6 +8,7 @@
   typedef struct Node_ {
     struct Node_ *next;
     void *data;
+    unsigned int tag:1;
   } Node;
 
   typedef struct List_ {
@@ -37,4 +38,5 @@
 
   // Miscellaneous
   void printList(List *l);
+  Comparison intPtrComp(const void *i1, const void *i2);
 #endif
