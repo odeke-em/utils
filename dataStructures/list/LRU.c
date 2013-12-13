@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "list.h"
+#define CLEAR_TAGS_AFTER_PURGE
 
 typedef List Cache;
 Cache *setTagValue(Cache *c, unsigned int tagValue) {
@@ -50,6 +51,9 @@ Cache *purgeLRU(Cache *c) {
     }
   }
 
+#ifdef CLEAR_TAGS_AFTER_PURGE
+  c = setTagValue(c, 0); // Now elements have to be reaccessed in next cycle
+#endif
   return c;
 }
 
@@ -88,9 +92,6 @@ int main() {
   printf("\n");
   printf("Next cycle\n");
 
-  // Next cycle
-  c = setTagValue(c, 0);
-
   for (i=0; i < 15; ++i) {
     int *newI = (int *)malloc(sizeof(int));
     *newI = i;
@@ -108,9 +109,6 @@ int main() {
   printf("\nAfter purge 2\n");
   printList(c);
   printf("\n");
-
-  // Next cycle
-  c = setTagValue(c, 0);
 
   destroyList(c);
   return 0;
