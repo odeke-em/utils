@@ -109,6 +109,8 @@ int getRank(const char *query, const char *from) {
   EditStat *et = getEditStats(query, from);
   if (et != NULL) {
     rank = (et->inplace*3)+(et->moves*2)+((et->deletions+et->additions)*-1);
+
+    free(et);
   }
 
   return rank;

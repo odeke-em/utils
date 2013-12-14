@@ -49,7 +49,7 @@ int main() {
 
   HashList *hl = NULL;
 
-  hl = initHashList(hl);
+  hl = initHashListWithSize(hl, 1000000);
 
   FILE *ifp = stdin;
   while (! feof(ifp)) {
@@ -57,7 +57,7 @@ int main() {
     insertElem(hl, inW, pjwCharHash(inW));
   }
 
-  hashValue queryHash = pjwCharHash("hashValue\0");
+  hashValue queryHash = pjwCharHash("odekee\0");
   Element **queryValue = get(hl, queryHash);
 
   if (queryValue != NULL) {

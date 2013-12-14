@@ -14,7 +14,11 @@
 
   void initEditStat(EditStat *est);
   inline EditStat *allocEditStat(void); 
+
   EditStat *allocAndInitEditStat(void);
+
   void printStat(const EditStat *);
+
+  int getRank(const char *query, const char *from);
   EditStat *getEditStats(const char *subject, const char *base);
 #endif
