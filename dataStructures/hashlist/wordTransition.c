@@ -11,7 +11,8 @@
 
 void initEditStat(EditStat *est) {
   if (est != NULL) {
-    est->moves = est->inplace = est->deletions = est->reuses = 0;
+    est->moves = est->inplace = est->deletions = 0;
+    est->reuses = est->stringLen = est->additions = 0;
   }
 }
 
@@ -32,8 +33,9 @@ EditStat *allocAndInitEditStat() {
 
 void printStat(const EditStat *est) {
   if (est != NULL) {
-    printf("\033[32mInplace: %d Moves: %d\nReuses: %d Deletions: %d\033[00m\n",
-      est->inplace, est->moves, est->reuses, est->deletions
+    printf(
+    "\033[32mInplace: %d Moves: %d\nReuses: %d Deletions: %d\nAdditions: %d\033[00m\n",
+      est->inplace, est->moves, est->reuses, est->deletions, est->additions
     );
   }
 }
@@ -48,7 +50,7 @@ EditStat *getEditStats(const char *subject, const char *base) {
   // Note 'a' - 'A' to account for collisions that will result from 
   // alphabetic characters wrapping over the small hashlist size
 
-  baseIndices = initHashListWithSize(baseIndices, baseLen + 'a'-'A');
+  baseIndices = initHashListWithSize(baseIndices, hashSize);
 
   for (i=0; i < baseLen; ++i) {
     int *indexCopy = (int *)malloc(sizeof(int));
@@ -58,6 +60,8 @@ EditStat *getEditStats(const char *subject, const char *base) {
 
   EditStat *est = allocAndInitEditStat();
   int subjectLen = strlen(subject);
+
+  est->stringLen = subjectLen;
 
   for (i=0; i < subjectLen; ++i) {
     int subIndex = subject[i] - 'a';
@@ -94,8 +98,20 @@ EditStat *getEditStats(const char *subject, const char *base) {
     }
   }
 
-  destroyHashList(baseIndices);
+  int nValueFrees = destroyHashList(baseIndices);
+  est->additions += nValueFrees; // Elements leftover and not matched by subject
   return est;
+}
+
+int getRank(const char *query, const char *from) {
+  int rank = -1000; // Arbitrary most negative
+
+  EditStat *et = getEditStats(query, from);
+  if (et != NULL) {
+    rank = (et->inplace*3)+(et->moves*2)+((et->deletions+et->additions)*-1);
+  }
+
+  return rank;
 }
 
 #ifdef SAMPLE_WORD_TRANSITION

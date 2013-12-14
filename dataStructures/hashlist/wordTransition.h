@@ -7,7 +7,9 @@
     uint32 moves, 
 	  reuses,
 	  inplace,
-	  deletions;
+	  additions,
+	  deletions,
+	  stringLen;
   } EditStat;
 
   void initEditStat(EditStat *est);
