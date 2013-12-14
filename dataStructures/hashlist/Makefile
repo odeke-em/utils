@@ -1,5 +1,8 @@
 CC := gcc
 
+testHash:     hashlist.o  testHash.c
+	    $(CC) testHash.c hashlist.o -o testHash
+
 wordTransition.o:   hashlist.o wordTransition.*
 	    $(CC) -c wordTransition.c -o wordTransition.o
 

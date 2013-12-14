@@ -36,4 +36,7 @@
   Element *pop(HashList *hM, const hashValue hashCode);
 
   void destroySList(Element *sl);
+
+  // Miscellaneous
+  hashValue pjwCharHash(const char *srcW);
 #endif

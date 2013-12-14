@@ -184,6 +184,25 @@ void destroyHashList(HashList *hl) {
   }
 }
 
+hashValue pjwCharHash(const char *srcW) {
+  // PJW hashing algorithm
+  hashValue h = 0;
+
+  unsigned int g, i, 
+	       srcLen = strlen(srcW) / sizeof(char);
+
+  for (i=0; i < srcLen; ++i) {
+    h = (h << 4) + srcW[i];
+    g = h & 0xf0000000;
+    if (g) {
+      h ^= (g >> 24);
+      h ^= g;
+    }
+  }
+
+  return h;
+}
+
 #ifdef SAMPLE_RUN
 int main() {
   HashList *hl = NULL;
