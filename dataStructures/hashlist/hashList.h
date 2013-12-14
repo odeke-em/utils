@@ -21,7 +21,9 @@
   // Returns True if the element's next entry is non-NULL
   inline Bool hasNext(Element *);
 
+  // Next attribute accessor
   inline Element *getNext(Element *);
+  inline int getSize(HashList *hl);
 
   Element *initElement(Element *);
   HashList *initHashListWithSize(HashList *hl, const int size);
@@ -30,9 +32,8 @@
   Element *addToHead(Element *sl, void *data);
   Element *addToTail(Element *sl, void *data, const Bool overWriteOnDup);
 
-  void destroySList(Element *sl);
-
-  inline int getSize(HashList *hl);
-
+  Element **get(HashList *hl, hashValue hashCode);
   Element *pop(HashList *hM, const hashValue hashCode);
+
+  void destroySList(Element *sl);
 #endif

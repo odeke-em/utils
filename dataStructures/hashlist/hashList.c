@@ -13,6 +13,8 @@
 #endif
 
 #define HANDLE_COLLISIONS
+#define EXHIBIT_COLLISION
+#define EXHIBIT_GET_BY_REFERENCE
 
 inline Bool hasNext(Element *e) { return e != NULL && e->next != NULL; }
 inline Element *getNext(Element *e) { return e == NULL ? NULL : e->next; }
@@ -77,10 +79,13 @@ HashList *initHashListWithSize(HashList *hl, const int size) {
       "Run out of memory, trying to create space for a hashlist's list attribute"     );
     }
 
-    int i;
     // All elements set to NULL
-    for (i=0; i < hl->size; ++i) {
-      hl->list[i] = NULL;
+    Element **listIter = hl->list, **end = hl->list + hl->size;
+    while (listIter != end) {
+    #ifdef DEBUG
+      printf("lIt: %p end: %p\n", listIter, end);
+    #endif
+      *listIter++ = NULL;
     }
   }
 
@@ -119,9 +124,9 @@ void insertElem(HashList *hl, void *data, const hashValue hashCode) {
   }
 }
 
-Element *get(HashList *hl, hashValue hashCode) {
+Element **get(HashList *hl, hashValue hashCode) {
   return (hl == NULL || ! hl->size || hl->list == NULL) \
-	  ? NULL : hl->list[hashCode % hl->size];
+	  ? NULL : &(hl->list[hashCode % hl->size]);
 }
 
 void destroySList(Element *sl) {
@@ -155,7 +160,10 @@ Element *pop(HashList *hM, const hashValue hashCode) {
     hM->list[calcIndex] = NULL;
   }
 
+#ifdef DEBUG
   printf("hPElement: %p\n", pElement);
+#endif
+
   return pElement;
 }
 
@@ -179,11 +187,18 @@ void destroyHashList(HashList *hl) {
 #ifdef SAMPLE_RUN
 int main() {
   HashList *hl = NULL;
+
+  unsigned int hSize = 10000000;
+#ifdef EXHIBIT_COLLISION
+  hl = initHashListWithSize(hl, hSize/10);
+#else
+  hl = initHashListWithSize(hl, hSize);
+#endif
   char *tmp = (char *)malloc(4);
-  hl = initHashList(hl);
+  insertElem(hl, tmp, 2);
 
   int i;
-  for (i=0; i < 10000; i++) {
+  for (i=0; i < hSize; i++) {
     int *x = (int *)malloc(sizeof(int));
     *x = i;
     insertElem(hl, x, i);
@@ -191,26 +206,38 @@ int main() {
 
   printf("hl %p\n", hl);
 
-  Element *found = get(hl, 101);  
-  Element *popd = pop(hl, 101);
+#ifdef EXHIBIT_GET_REFERENCE
+  Element **found = get(hl, 101);
 
-  printf("Found: %p\n", found);
-  while (hasNext(found)) {
-    printf("Found: %p\n", found);
-    found = getNext(found);
-    printf("%d\n", *((int *)found->value));
+  while (*found != NULL) {
+    printf("FND: %d\n", *((int *)(*found)->value));
+
+    Element *curHolder = *found;
+    *found = (*found)->next;
+     
+    if (curHolder->value != NULL) free(curHolder->value); 
+    free(curHolder);
+
   }
+  if (found != NULL) free(*found);
+#endif
 
-  insertElem(hl, tmp, 2);
-  destroyHashList(hl);
-  Element *savHead = popd;
+  hashValue hTest = 101;
+  Element *popd = pop(hl, hTest);
 
-  while (hasNext(popd)) {
+  while (popd != NULL) {
+    Element *cur = popd;
     popd = getNext(popd);
-    printf("%d\n", *((int *)popd->value));
+
+    if (cur->value != NULL) {
+      printf("Elem with hash: %d :: %d\n", hTest, *((int *)cur->value));
+      free(cur->value);
+    }
+
+    free(cur);
   }
 
-  destroySList(savHead);
+  destroyHashList(hl);
   return 0;
 }
 #endif
