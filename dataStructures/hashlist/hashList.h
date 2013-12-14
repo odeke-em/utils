@@ -1,3 +1,4 @@
+// Author: Emmanuel Odeke <odeke@ualberta.ca>
 #ifndef _HASHLIST_H
 #define _HASHLIST_H
 
