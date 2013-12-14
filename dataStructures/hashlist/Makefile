@@ -1,7 +1,10 @@
 CC := gcc
 
-hashlist:   hashList.c hashList.h
-	    $(CC) -DSAMPLE_RUN hashList.c -o hashList
+wordTransition.o:   hashlist.o wordTransition.*
+	    $(CC) -c wordTransition.c -o wordTransition.o
+
+hashlist.o:   hashList.c hashList.h
+	    $(CC) -c hashList.c -o hashlist.o
 
 clean:	  
-	    rm -f hashList *.o
+	    rm -f *.o
