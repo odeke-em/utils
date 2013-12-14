@@ -36,7 +36,11 @@
   Element **get(HashList *hl, hashValue hashCode);
   Element *pop(HashList *hM, const hashValue hashCode);
 
-  void destroySList(Element *sl);
+  // Returns the number of values freed
+  long int destroySList(Element *sl);
+
+  // Returns the number of values freed
+  long int destroyHashList(HashList *hl);
 
   // Miscellaneous
   hashValue pjwCharHash(const char *srcW);

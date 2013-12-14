@@ -129,7 +129,8 @@ Element **get(HashList *hl, hashValue hashCode) {
 	  ? NULL : &(hl->list[hashCode % hl->size]);
 }
 
-void destroySList(Element *sl) {
+long int destroySList(Element *sl) {
+  long int nValueFrees = 0;
   if (sl != NULL) { 
     // printf("Sl == NULL: %d\n", sl != NULL);
     Element *tmp;
@@ -140,6 +141,7 @@ void destroySList(Element *sl) {
     #endif
       if (sl->value != NULL) {
 	free(sl->value);
+	++nValueFrees;
       }
 
       free(sl);
@@ -149,6 +151,7 @@ void destroySList(Element *sl) {
     sl = NULL;
   }
 
+  return nValueFrees;
 }
 
 Element *pop(HashList *hM, const hashValue hashCode) {
@@ -167,12 +170,13 @@ Element *pop(HashList *hM, const hashValue hashCode) {
   return pElement;
 }
 
-void destroyHashList(HashList *hl) {
+long int destroyHashList(HashList *hl) {
+  long int nValueFrees = 0;
   if (hl != NULL) {
     int i;
     if (hl->list != NULL) {
       for (i=0; i < hl->size; ++i) {
-	destroySList(hl->list[i]);
+	nValueFrees += destroySList(hl->list[i]);
       }
 
       free(hl->list);
@@ -182,6 +186,8 @@ void destroyHashList(HashList *hl) {
     free(hl);
     hl = NULL;
   }
+
+  return nValueFrees;
 }
 
 hashValue pjwCharHash(const char *srcW) {
