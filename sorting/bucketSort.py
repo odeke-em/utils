@@ -3,6 +3,8 @@
 
 # We'll be doing all bucket resolutions in lower case
 
+import sys
+
 DEBUG = False
 asciiA = ord('a')
 asciiZ = ord('z')
@@ -50,7 +52,12 @@ def buckSort(elems):
 preprocess = lambda iters,func : map(lambda e: (e, func(e)), iters)
 
 def main():
-  elemList =  ["mylo", "edo", "edi", "dfpu", "abcd", "efhg", "aaaa", "eex", "ee", "a", "zxyb", "emmanuel2", "emmanuel*"]
+  argc = len(sys.argv)
+  if argc < 2:
+    elemList = ["dumfries", "lucas", "bizery", "anointz12"]
+  else:
+    elemList = sys.argv[1:]
+
   print("Before ", elemList)
   lenPreprocessed  = list(preprocess(elemList, len))
   buckSort(lenPreprocessed)
