@@ -138,18 +138,15 @@ Node *radixSort(Node *src, const int radix) {
   #ifdef DEBUG
     printf("MovBase %d\n", movBase);
   #endif
-    int tmpElem = 0; 
-
     // Popping to buckets phase
     Node *srcMemoize = src;
     while (src != NULL) {
-      tmpElem = src->data;
-      src = src->next;
-      radIndex = (tmpElem / movBase) % radix;
+      radIndex = (src->data / movBase) % radix;
     #ifdef DEBUG
-      printf("Inserting %d into bucket %d\n", tmpElem, radIndex);
+      printf("Inserting %d into bucket %d\n", src->data, radIndex);
     #endif
-      nodeBlock[radIndex] = addNode(nodeBlock[radIndex], tmpElem);
+      nodeBlock[radIndex] = addNode(nodeBlock[radIndex], src->data);
+      src = src->next;
     }
 
     freeSL(srcMemoize);
