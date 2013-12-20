@@ -29,10 +29,11 @@ def buckSort(elems):
   bucketList = [list() for i in range(alphabetSize)]
 
   passCount = 0
+  elemsLen = len(elems)
   maxLen = len(maxElem[0])
   for index in range(maxLen - 1, -1, -1):
-    while elems:
-      e, l = elems.pop(0)
+    for i in range(elemsLen):
+      e, l = elems[i]
       if l <= index:
         bucketList[0].append((e, l))
       else:
@@ -41,9 +42,11 @@ def buckSort(elems):
     if DEBUG:
        print('bucketList ', bucketList)
 
+    elemsIndex = 0
     for b in bucketList:
       while b:
-         elems.append(b.pop(0))
+         elems[elemsIndex] = b.pop(0)
+         elemsIndex += 1
 
     if DEBUG:
        print("passCount ", passCount, elems)
