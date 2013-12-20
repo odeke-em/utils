@@ -54,10 +54,12 @@ def buckSort(elems):
        print('bucketList ', bucketList)
 
     elemsIndex = 0
-    for b in bucketList:
-      while b:
-         elems[elemsIndex] = b.pop(0)
+    for bIndex in range(alphabetSize):
+      for elem in bucketList[bIndex]:
+         elems[elemsIndex] = elem
          elemsIndex += 1
+
+      bucketList[bIndex] = [] # Reset the element, let GC handle the rest
 
     if DEBUG:
        print("passCount ", passCount, elems)
@@ -72,12 +74,14 @@ def main():
   else:
     elemList = sys.argv[1:]
 
-  print("Before ", elemList)
+  # print("Before ", elemList)
   lenPreprocessed  = list(preprocess(elemList, len))
   buckSort(lenPreprocessed)
 
-  sortedElems = list(map(lambda e : e[0], lenPreprocessed))
-  print("After ", sortedElems)
+  # sortedElems = list(map(lambda e : e[0], lenPreprocessed))
+  for elem in lenPreprocessed:
+    print(elem[0])
+  # print("After ", sortedElems)
 
 if __name__ == '__main__':
   main()
