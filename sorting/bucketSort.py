@@ -6,21 +6,32 @@
 import sys
 
 DEBUG = False
-asciiA = ord('a')
-asciiZ = ord('z')
+
+capsA = ord('A')
+capsZ = ord('Z')
+lowerA = ord('a')
+lowerZ = ord('z')
 ascii0 = ord('0')
 ascii9 = ord('9')
-azDiff = asciiZ - asciiA
+
+capsAZDiff = capsZ - capsA
+lowerAZDiff = lowerZ - lowerA
 _09Diff = ascii9 - ascii0
 
-alphabetSize = azDiff + _09Diff + 1 # Extra space for unknown characters
+alphabetSize = capsAZDiff + lowerAZDiff + _09Diff + 1 # Extra space for unknown characters
 
 def getIndex(ch):
   elemOrd = ord(ch)
-  if (elemOrd >= asciiA and elemOrd <= asciiZ):
-    return elemOrd - asciiA
-  elif (elemOrd >= ascii0 and elemOrd <= ascii9):
-    return (elemOrd - ascii0) + azDiff
+
+  if (elemOrd >= ascii0 and elemOrd <= ascii9):
+    return (elemOrd - ascii0)
+
+  elif (elemOrd >= capsA and elemOrd <= capsZ):
+    return _09Diff + (elemOrd - capsA)
+
+  elif (elemOrd >= lowerA and elemOrd <= lowerZ):
+    return _09Diff + lowerAZDiff + (elemOrd - lowerA)
+
   else: # Unknown to the alphabet in consideration
     return alphabetSize - 1
   
