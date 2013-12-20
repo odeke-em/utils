@@ -6,7 +6,7 @@
 
 #define raiseWarning(msg) {\
   fprintf(stderr, "%s [%s::%d]\033[31m%s\033[00m\n", \
-	__FILE__, __func__, __LINE__, msg);\
+        __FILE__, __func__, __LINE__, msg);\
 }
 
 typedef struct Node_ {
@@ -28,8 +28,8 @@ inline void *allocMgr(ssize_t sz) {
   return newMem;
 }
 
-inline Node *allocNode() { 
-  return (Node *)allocMgr(sizeof(Node)); 
+inline Node *allocNode() {
+  return (Node *)allocMgr(sizeof(Node));
 }
 
 Node *pop(Node *src, int *storage) {
@@ -81,7 +81,6 @@ void printList(Node *src) {
   }
   printf("]");
 }
-
 long long int reduce(Node *src) {
   long long int result = 0;
   Node *trav = src;
@@ -138,30 +137,29 @@ Node *radixSort(Node *src, const int radix) {
   #ifdef DEBUG
     printf("MovBase %d\n", movBase);
   #endif
+    int tmpElem = 0;
+
     // Popping to buckets phase
-    Node *srcMemoize = src;
     while (src != NULL) {
-      radIndex = (src->data / movBase) % radix;
+      src = pop(src, &tmpElem);
+      radIndex = (tmpElem / movBase) % radix;
     #ifdef DEBUG
-      printf("Inserting %d into bucket %d\n", src->data, radIndex);
+      printf("Inserting %d into bucket %d\n", tmpElem, radIndex);
     #endif
-      nodeBlock[radIndex] = addNode(nodeBlock[radIndex], src->data);
-      src = src->next;
+      nodeBlock[radIndex] = addNode(nodeBlock[radIndex], tmpElem);
     }
 
-    freeSL(srcMemoize);
     // Re-Insertion phase
     for (i=0; i < radix; ++i) {
-      srcMemoize = nodeBlock[i];
+      int popRes = 0;
       while (nodeBlock[i] != NULL) {
-	src = addNode(src, nodeBlock[i]->data);
-	nodeBlock[i] = (nodeBlock[i])->next;
+        nodeBlock[i] = pop(nodeBlock[i], &popRes);
+        src = addNode(src, popRes);
       #ifdef DEBUG
-	printf("Popped from bucket: %d value %d\n", i, popRes);
+        printf("Popped from bucket: %d value %d\n", i, popRes);
       #endif
       }
-
-      freeSL(srcMemoize);
+      freeSL(nodeBlock[i]);
     }
 
     movBase *= radix;
@@ -181,14 +179,14 @@ int main() {
   int i;
   Node *n = NULL;
   n = addNode(n, 10);
+  n = addNode(n, 50);
   n = addNode(n, 1);
-  n = addNode(n, 123);
   n = addNode(n, 3);
   n = addNode(n, 8);
 
-  for (i=20; i <= 370; ++i)
+  for (i=20; i <= 37000; ++i)
     n = addNode(n, i);
-  
+
   n = addNode(n, 1);
   n = addNode(n, 123);
   n = addNode(n, 99);
