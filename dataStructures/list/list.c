@@ -88,15 +88,16 @@ List *append(List *l, void *data) {
     // First item being added to the list
     l->head = createNewNode();
     l->head->data = data;
+    l->tail = l->head;
   } else {
     // Adding to the end
     Node *newEnd = createNewNode();
     newEnd->data = data;
     newEnd->next = l->head;
     l->head = newEnd;
+    l->tail->next = l->head;
   }
 
-  l->tail = l->head;
   ++l->size;
 
   return l;
@@ -105,7 +106,7 @@ List *append(List *l, void *data) {
 void destroyList(List *l) {
   if (l != NULL) {
     Node *start = l->head, *end = l->tail, *tmp;
-    while (start != NULL) {
+    while (start != end) {
       tmp = start->next;
       if (start == NULL) break;
 
@@ -113,6 +114,11 @@ void destroyList(List *l) {
 
       free(start);
       start = tmp;
+    }
+
+    if (end != NULL) {
+      if (end->data != NULL) free(end->data);
+      free(end);
     }
 
     free(l);
@@ -187,6 +193,12 @@ int main() {
   #ifdef DEBUG
     printf("Aprespend: %p tp: %p\n", l, tp);
   #endif
+  }
+
+  Node *start = l->head, *end = l->tail;
+  while (start != end) {
+    printf("start: %p end: %p\n", start, end);
+    start = start->next;
   }
 
   printList(l);

@@ -22,7 +22,7 @@ Cache *setTagValue(Cache *c, unsigned int tagValue) {
 Cache *purgeLRU(Cache *c) {
   if (c != NULL) {
     Node *it = c->head, *end = c->tail, *prev = c->head;
-    while (it != NULL) {
+    while (it != end) {
       if (it->tag == 0) { // Hasn't been accessed since the last cycle
    
 	if (it->data != NULL) {
