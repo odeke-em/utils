@@ -35,9 +35,9 @@ Comparison intPtrComp(const void *i1, const void *i2) {
 
 Node *initNode(Node *n) {
   if (n != NULL) {
+    n->tag = 0;
     n->data = NULL;
     n->next = NULL;
-    n->tag = 0;
   }
 
   return n;
@@ -53,9 +53,9 @@ Node *createNewNode(void) {
 
 List *initList(List *l) {
   if (l != NULL) {
+    l->size = 0;
     l->head = initNode(l->head);
     l->tail = initNode(l->tail);
-    l->size = 0;
   }
 
   return l;
@@ -75,7 +75,7 @@ inline List *allocList(void) {
 }
 
 
-List *append(List *l, void *data) {
+List *prepend(List *l, void *data) {
 #ifdef DEBUG
   printf("\033[32m%s\033[00m\n", __func__);
 #endif
@@ -90,7 +90,7 @@ List *append(List *l, void *data) {
     l->head->data = data;
     l->tail = l->head;
   } else {
-    // Adding to the end
+    // Adding to the front
     Node *newEnd = createNewNode();
     newEnd->data = data;
     newEnd->next = l->head;
@@ -103,15 +103,27 @@ List *append(List *l, void *data) {
   return l;
 }
 
+int freeFromHeadToTail(Node *head, Node *tail) {
+  int freeCount = 0;
+
+  return freeCount;
+}
+
 void destroyList(List *l) {
   if (l != NULL) {
     Node *start = l->head, *end = l->tail, *tmp;
+
     while (start != end) {
       tmp = start->next;
       if (start == NULL) break;
 
-      if (start->data != NULL)  free(start->data);
+      if (start->data != NULL)  {
+	if (start->freeData == NULL) 
+	  free(start->data);
+	else
+	  start->freeData(start->data);
 
+      }
       free(start);
       start = tmp;
     }
@@ -189,7 +201,7 @@ int main() {
   for (i=0; i < 40; ++i) {
     int *tp = (int *)malloc(sizeof(int));
     *tp = i;
-    l = append(l, tp);
+    l = prepend(l, tp);
   #ifdef DEBUG
     printf("Aprespend: %p tp: %p\n", l, tp);
   #endif

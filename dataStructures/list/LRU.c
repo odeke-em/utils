@@ -73,7 +73,7 @@ int main() {
   for (i=0; i < 10; ++i) {
     int *newI = (int *)malloc(sizeof(int));
     *newI = i;
-    c = append(c, newI);
+    c = prepend(c, newI);
   }
 
   printList(c);
@@ -92,13 +92,13 @@ int main() {
   printf("\n");
   printf("Next cycle\n");
 
-  for (i=0; i < 15; ++i) {
+  for (i=0; i < 15000; ++i) {
     int *newI = (int *)malloc(sizeof(int));
     *newI = i;
-    c = append(c, newI);
+    c = prepend(c, newI);
   }
 
-  for (i=0; i < 10; ++i) {
+  for (i=10; i < 1000; ++i) {
     c = accessMember(c, &i, intPtrComp);
   }
 

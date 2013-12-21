@@ -1,5 +1,5 @@
 CC := gcc
-LRU:	list.o list.h
+LRU:	list.o list.h LRU.c
 	$(CC) list.o LRU.c -o LRU
 
 list.o:	  list.h list.c Makefile
