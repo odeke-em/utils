@@ -197,7 +197,6 @@ int main() {
 
   Node *start = l->head, *end = l->tail;
   while (start != end) {
-    printf("start: %p end: %p\n", start, end);
     start = start->next;
   }
 
