@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "list.h"
+#include "LRU.h"
+
 #define CLEAR_TAGS_AFTER_PURGE
 
-typedef List Cache;
 Cache *setTagValue(Cache *c, unsigned int tagValue) {
   if (c != NULL) {
     Node *start = c->head, *end = c->tail;
@@ -67,6 +67,7 @@ Cache *accessMember(Cache *c, void *entry, Comparator comp) {
   return c;
 }
 
+#ifdef SAMPLE_LRU
 int main() {
   Cache *c = NULL;
   int i=0;
@@ -92,13 +93,13 @@ int main() {
   printf("\n");
   printf("Next cycle\n");
 
-  for (i=0; i < 15000; ++i) {
+  for (i=0; i < 1500; ++i) {
     int *newI = (int *)malloc(sizeof(int));
     *newI = i;
     c = prepend(c, newI);
   }
 
-  for (i=10; i < 1000; ++i) {
+  for (i=900; i < 1000; ++i) {
     c = accessMember(c, &i, intPtrComp);
   }
 
@@ -113,3 +114,4 @@ int main() {
   destroyList(c);
   return 0;
 }
+#endif
