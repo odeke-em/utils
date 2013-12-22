@@ -31,6 +31,7 @@ Cache *purgeLRU(Cache *c) {
 	#endif
 	  free(it->data);
 	  it->data = NULL;
+	  --c->size;
 	}
 
 	if (prev == NULL) {
