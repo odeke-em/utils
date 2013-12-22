@@ -9,5 +9,5 @@
 
   Cache *setTagValue(Cache *c, unsigned int tagValue);
 
-  Cache *accessMember(Cache *c, void *entry, Comparator comp);
+  void *lookUpEntry(Cache *c, void *key, Comparator comp);
 #endif

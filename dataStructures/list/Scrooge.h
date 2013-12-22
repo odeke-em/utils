@@ -12,5 +12,9 @@
   Producer *allocProducer();
   Producer *initProducer(Producer *prod, const unsigned int capacity);
 
-  Producer *insertJob(Producer *prod, void *data);
+  // Only adds the job to the producer's consumer list if the producer
+  // is not NULL and if there is space on the consumer list
+  // Cannot add a NULL JOB to the consumer's list
+  // Returns 0 on SUCCESS, non-zero on FAILURE
+  int insertJob(Producer *prod, void *job);
 #endif

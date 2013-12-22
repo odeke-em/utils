@@ -13,7 +13,7 @@
   } Node;
 
   typedef struct List_ {
-    int size;
+    unsigned int size;
     Node *head, *tail;
   } List;
 
@@ -29,7 +29,7 @@
 
   inline void *getData(const Node *n);
   inline void *getNextNode(const Node *n);
-  inline int getListSize(const List *l);
+  inline unsigned int getListSize(const List *l);
 
   List *prepend(List *l, void *data);
   Node *find(List *l, void *query, Comparator comp);

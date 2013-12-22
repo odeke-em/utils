@@ -29,9 +29,9 @@ Cache *purgeLRU(Cache *c) {
 	#ifdef DEBUG
 	  printf("Purging: %d\n", *(int *)it->data);
 	#endif
+	  --c->size;
 	  free(it->data);
 	  it->data = NULL;
-	  --c->size;
 	}
 
 	if (prev == NULL) {
@@ -58,14 +58,16 @@ Cache *purgeLRU(Cache *c) {
   return c;
 }
 
-Cache *accessMember(Cache *c, void *entry, Comparator comp) {
+void *lookUpEntry(Cache *c, void *key, Comparator comp) {
   if (c != NULL) {
-    Node *entryNode = find(c, entry, comp);
-    if (entryNode != NULL) 
-      entryNode->tag = 1;
+    Node *queryNode = find(c, key, comp);
+    if (queryNode != NULL) {
+      queryNode->tag = 1;
+      return queryNode->data;
+    }
   }
 
-  return c;
+  return NULL;
 }
 
 #ifdef SAMPLE_LRU
@@ -83,7 +85,7 @@ int main() {
   printf("\n");
 
   for (i= 2; i < 8; ++i) {
-    c = accessMember(c, &i, intPtrComp);
+    lookUpEntry(c, &i, intPtrComp);
   }
 
   printf("Before purge 1\n");
@@ -101,7 +103,7 @@ int main() {
   }
 
   for (i=900; i < 1000; ++i) {
-    c = accessMember(c, &i, intPtrComp);
+    lookUpEntry(c, &i, intPtrComp);
   }
 
   printf("After second set of accesses\n");

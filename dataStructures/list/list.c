@@ -13,7 +13,7 @@ inline void *getNextNode(const Node *n) {
   return n == NULL ? NULL : n->next; 
 }
 
-inline int getListSize(const List *l) { 
+inline unsigned int getListSize(const List *l) { 
   return l == NULL ? 0 : l->size; 
 }
 
@@ -163,7 +163,7 @@ Node *find(List *l, void *query, Comparator matchFunc) {;
 	break;
       }
       it = it->next;
-    } while (it != NULL);
+    } while (it != end);
   }
 
   return result;
@@ -171,12 +171,13 @@ Node *find(List *l, void *query, Comparator matchFunc) {;
 
 List *removeElem(List *l, void *query, Comparator matchFunc) {
   if (l != NULL && matchFunc != NULL) {
-    Node *prev = NULL, *cur = l->head;
+    Node *prev = NULL, *cur = l->head, *end = l->tail;
     while (cur != NULL) {
       if (matchFunc(cur->data, query) == EQUAL) break;
 
       prev = cur;
       cur = cur->next;
+      if (cur == end) break;
     }
 
     if (cur != NULL) {
@@ -190,10 +191,11 @@ List *removeElem(List *l, void *query, Comparator matchFunc) {
       free(cur);
       cur = NULL;
     }
-    
   }
   return l;
 }
+
+
 #ifdef SAMPLE_RUN
 int main() {
   int i;

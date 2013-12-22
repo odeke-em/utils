@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#define DEBUG
 
+#include "errors.h"
 #include "Scrooge.h"
 
-#define PRODUCER_CAPACITY 20
+#define PRODUCER_CAPACITY 30
 #define DEFAULT_PRODUCER_CAPACITY 10
 
 Producer *allocProducer() {
@@ -42,37 +42,28 @@ void *generateData(void) {
   return NULL;
 }
 
-Producer *insertJob(Producer *prod, void *data) {
+// Cannot add a NULL JOB to the consumer's list
+// Returns 0 on SUCCESS, non-zero on FAILURE
+int insertJob(Producer *prod, void *job) {
 #ifdef DEBUG
   printf("\033[33mIn %s\033[00m\n", __func__);
 #endif
-  if (prod == NULL) {
-    prod = initProducer(prod, DEFAULT_PRODUCER_CAPACITY);
-  }
+  int insertResult = -1;
 
-  if (prod->consumerCount < prod->maxCapacity) {
-  #ifdef DEBUG
-    printf("\033[32mInserting element %d\033[00m\n", prod->consumerCount);
-  #endif
-    prod->consumerList = prepend(prod->consumerList, data);
-    ++prod->consumerCount;
-  } else { // Time to purge folks
-  #ifdef DEBUG
-    printf("Purging now %p\n", prod->consumerList);
-  #endif
-    prod->consumerList = purgeLRU(prod->consumerList);
-
-    if (prod->consumerList == NULL) {
-      prod->consumerCount = 0;
+  if (job == NULL)  {
+    raiseWarning("NULL job trying to be inserted");
+  } else {
+    if (
+      prod != NULL && getListSize(prod->consumerList) < prod->maxCapacity
+    ) {
+      prod->consumerList = prepend(prod->consumerList, job);
+      insertResult = 0;
     } else {
-      prod->consumerCount = getListSize(prod->consumerList);
-    }
-
-    // Try again
-    prod = insertJob(prod, data);
+      insertResult = 2;
+    } 
   }
 
-  return prod;
+  return insertResult;
 }
 
 int main() {
@@ -80,8 +71,26 @@ int main() {
   prod = initProducer(prod, PRODUCER_CAPACITY);
 
   int i;
-  for (i=0; i < 30; ++i) {
-    prod = insertJob(prod, malloc(sizeof(int)));
+  for (i=0; i < 500; ++i) {
+    int *jobImitation = (int *)malloc(sizeof(int));
+    *jobImitation = i;
+    // Remember no NULL jobs allowed
+    insertionPhase: {
+      int status = insertJob(prod, jobImitation);
+      if (status > 0) {
+	prod->consumerList = purgeLRU(prod->consumerList);
+	goto insertionPhase;
+      } else if (! status){
+      #ifdef DEBUG
+	printf("Successful insertion: %d\n", i);
+      #endif
+      }
+    }
+  }
+
+  for (i=300; i < 500; ++i) {
+    void *data = lookUpEntry(prod->consumerList, &i, intPtrComp);
+    printf("Key: %d Data: %p\n", i, data);
   }
 
   prod = destroyProducer(prod);
