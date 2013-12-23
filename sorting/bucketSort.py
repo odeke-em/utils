@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 # Author: Emmanuel Odeke <odeke@ualberta.ca>
 
-# We'll be doing all bucket resolutions in lower case
 
 import sys
 
