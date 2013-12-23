@@ -21,31 +21,26 @@ inline Node *allocNode() {
   return (Node *)allocMgr(sizeof(Node));
 }
 
-Node *pop(Node *src, int *storage) {
+Node *pop(Node *src, void *storage) {
   if (src != NULL) {
-    *storage = src->data;
+    storage = src->data;
     Node *prev = src;
     src = src->next;
     free(prev);
     prev = NULL;
   } else {
-    printf("src is NULL\n");
+    printf("Popping from NULL src\n");
   }
 
   return src;
 }
 
-Node *addNode(Node *src, const int data) {
-  if (src != NULL) {
-    Node *newN = allocNode();
-    newN->data = data;
-    newN->next = src;
-    src = newN;
-  } else {
-    src = allocNode();
-    src->data = data;
-    src->next = NULL;
-  }
+Node *addNode(Node *src, void *data, int metaTag) {
+  Node *newN = allocNode();
+  newN->data = data;
+  newN->next = src;
+  newN->metaTag = metaTag;
+  src = newN;
 
   return src;
 }
@@ -54,6 +49,7 @@ void freeSL(Node *src) {
   Node *tmp;
   while (src != NULL) {
     tmp = src->next;
+    if (src->data != NULL) free(src->data);
     free(src);
     src = tmp;
   }
@@ -62,13 +58,18 @@ void freeSL(Node *src) {
 }
 
 void printList(Node *src) {
-  printf("[");
+  printf("{");
   Node *tmp = src;
   while (tmp != NULL) {
-    printf(" %d ", tmp->data);
+    if (tmp->data != NULL)
+      printf(" %s ", (char *)(tmp->data));
+    #ifdef SHOW_LENGTH
+      printf(" %d ", tmp->metaTag);
+    #endif
+      printf("\n");
     tmp = tmp->next;
   }
-  printf("]");
+  printf("}");
 }
 
 
@@ -76,31 +77,35 @@ long long int reduce(Node *src) {
   long long int result = 0;
   Node *trav = src;
   while (trav != NULL) {
-    result += trav->data;
+    if (trav->data != NULL)
+      result += *(int *)trav->data;
+
     trav = trav->next;
   }
 
   return result;
 }
 
-Node *map(Node *src, int (*func)(const void *)) {
+Node *map(Node *src, void *(*func)(const void *)) {
   Node *mapped = NULL;
   Node *trav = src;
   while (trav != NULL) {
-    mapped = addNode(mapped, func(&trav->data));
+    mapped = addNode(mapped, func(trav->data), 0);
     trav = trav->next;
   }
 
   return mapped;
 }
 
-int squareAsInts(const void *data) {
-  if (data  != NULL) {
-    int result = *(int *)data;
-    return result * result;
+void *square(const void *data) {
+  int *result = NULL;
+  if (data != NULL) {
+    result = (int *)malloc(sizeof(int));
+    *result = *(int *)data;
+    *result *= *result;
   }
 
-  return 0;
+  return result;
 }
 
 int getMax(Node *src) {
@@ -108,7 +113,11 @@ int getMax(Node *src) {
 
   Node *n = src;
   while (n != NULL) {
-    if (n->data > maxElem) maxElem = n->data;
+    if (n->data != NULL) {
+      int curData = *(int *)n->data; 
+      if (curData > maxElem) maxElem = curData;
+    }
+
     n = n->next;
   }
 

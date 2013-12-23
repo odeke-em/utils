@@ -1,5 +1,8 @@
 CC := gcc
 
+bucketSort:	node.o bucketSort.c
+	  $(CC) Node.o bucketSort.c -o bucketSort
+
 SLRadixSort:	node.o SLRadixSort.c
 	  $(CC) Node.o SLRadixSort.c -o SLRadixSort
 

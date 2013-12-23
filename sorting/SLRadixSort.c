@@ -19,26 +19,33 @@ Node *radixSort(Node *src, const int radix) {
   #ifdef DEBUG
     printf("MovBase %d\n", movBase);
   #endif
-    int tmpElem = 0;
-
     // Popping to buckets phase
     while (src != NULL) {
-      src = pop(src, &tmpElem);
-      radIndex = (tmpElem / movBase) % radix;
+      int *tmpElem = (int *)src->data;
+      radIndex = (*tmpElem / movBase) % radix;
     #ifdef DEBUG
-      printf("Inserting %d into bucket %d\n", tmpElem, radIndex);
+      printf("Inserting %d into bucket %d\n", *tmpElem, radIndex);
     #endif
-      nodeBlock[radIndex] = addNode(nodeBlock[radIndex], tmpElem);
+      nodeBlock[radIndex] = addNode(nodeBlock[radIndex], tmpElem, *tmpElem);
+
+      // We'll just be passing around the data and not freeing it
+      // until it's original owner is freed later on
+      Node *next = src->next;
+      free(src);
+      src = next;
     }
 
     // Re-Insertion phase
     for (i=0; i < radix; ++i) {
-      int popRes = 0;
       while (nodeBlock[i] != NULL) {
-        nodeBlock[i] = pop(nodeBlock[i], &popRes);
-        src = addNode(src, popRes);
+	int *popRes = (nodeBlock[i])->data;
+        src = addNode(src, popRes, *popRes);
+
+	Node *next = (nodeBlock[i])->next;
+	free(nodeBlock[i]);
+	nodeBlock[i] = next;
       #ifdef DEBUG
-        printf("Popped from bucket: %d value %d\n", i, popRes);
+        printf("Popped from bucket: %d value %d\n", i, *popRes);
       #endif
       }
       freeSL(nodeBlock[i]);
@@ -57,31 +64,44 @@ Node *radixSort(Node *src, const int radix) {
   return src;
 }
 
+void printIntList(Node *sl) {
+  Node *trav = sl;
+  printf("[ ");
+  while (trav != NULL) {
+    if (trav->data != NULL) {
+      printf("%d ", *(int *)trav->data);;
+    }
+
+    trav = trav->next;
+  }
+  printf("]");
+}
+
 int main() {
   int i;
   Node *n = NULL;
-  n = addNode(n, 10);
-  n = addNode(n, 50);
-  n = addNode(n, 1);
-  n = addNode(n, 3);
-  n = addNode(n, 8);
 
-  for (i=20; i <= 37; ++i)
-    n = addNode(n, i);
+  for (i=20; i <= 37; ++i) {
+    int *tmp = (int *)malloc(sizeof(int));
+    *tmp = i;
+    n = addNode(n, tmp, i);
+  }
 
-  n = addNode(n, 1);
-  n = addNode(n, 123);
-  n = addNode(n, 99);
-  n = addNode(n, 8898);
+  for (i=200; i < 400; ++i) {
+    int *tp = (int *)malloc(sizeof(int));
+    *tp = (i % 71);
+    n = addNode(n, tp, *tp);
+  }
 
-  Node *mpd = map(n, squareAsInts);
+  Node *mpd = map(n, square);
   mpd = radixSort(mpd, 10);
 
   long long int reducedValue = reduce(n);
-  printList(n);
-  printf("\n");
-  printList(mpd);
-  printf("\n");
+  printf("Original list\n\033[95m");
+  printIntList(n);
+  printf("\n\033[00mSorted list\n\033[94m");
+  printIntList(mpd);
+  printf("\033[00m\n");
   freeSL(n);
   freeSL(mpd);
   printf("Reduced value : %lld\n", reducedValue);
