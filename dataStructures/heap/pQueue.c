@@ -22,7 +22,8 @@ Comparison parcelCompare(const void *pA, const void *pB) {
 int main() {
   Parcel parcels[] = {
     10, printParcel, Clear, 12, setDataCost, Clear,
-    9, peek, Clear, 13, main, Clear, -1, initParcel, Clear
+    9, peek, Clear, 13, parcelCompare, Clear, -1, initParcel, Clear,
+    19, peek, Clear, 13, main, Clear, -1, NULL, Clear
   };
 
   PQueue *pQ = NULL;
@@ -38,13 +39,14 @@ int main() {
     const void *it = NULL;
     heapExtract(pQ, &it);
     printParcel((const Parcel *)it);
+    printf("\n");
   } 
 #else
   void **it = pQ->tree, **end = pQ->tree + pQ->size;
   while (it != end) {
     printParcel((const Parcel *)*it++);
+    printf("\n");
   }
-
 #endif
   destroyHeap(pQ);
   return 0;
