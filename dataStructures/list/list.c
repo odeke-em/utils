@@ -9,6 +9,14 @@ inline void *getData(const Node *n) {
   return n == NULL ? NULL : n->data; 
 }
 
+inline void *peek(const List *l) {
+  return isEmpty(l) ? NULL : getData(l->head);
+}
+
+inline int isEmpty(const List *l) {
+  return (l== NULL || l->head == NULL || l->size == 0) ? 1 : 0;
+}
+
 inline void *getNextNode(const Node *n) { 
   return n == NULL ? NULL : n->next; 
 }
@@ -74,6 +82,29 @@ inline List *allocList(void) {
   return (List *)malloc(sizeof(List));
 }
 
+List *append(List *l, void *data) {
+  if (l == NULL) {
+    l = createNewList();
+  }
+
+  if (l->head == NULL) {
+    // First item being added to the list
+    l->head = createNewNode();
+    l->head->data = data;
+    l->tail = NULL;
+    l->head->next = l->tail;
+  } else if (l->tail == NULL) {
+    l->tail = createNewNode(); 
+    l->tail->data = data;
+    l->head->next = l->tail;
+  } else {
+    l->tail->next = createNewNode();
+    l->tail = l->tail->next;
+    l->tail->data = data;
+  }
+
+  return l;
+}
 
 List *prepend(List *l, void *data) {
 #ifdef DEBUG
@@ -111,7 +142,7 @@ int freeFromHeadToTail(Node *head, Node *tail) {
 
 void destroyList(List *l) {
   if (l != NULL) {
-    Node *start = l->head, *end = l->tail, *tmp;
+    Node *start = l->head, *end = l->tail, *tmp = NULL;
 
     while (start != end) {
       tmp = start->next;
@@ -142,11 +173,11 @@ void printList(List *l) {;
   printf("[");
   if (l != NULL) {
     Node *it = l->head, *end = l->tail;
-    do {
-      if (it == NULL) break;
+    while (it != NULL) {
       if (it->data  != NULL) printf(" %d:%d ", *(int *)it->data, it->tag);
+      if (it == end) break;
       it = it->next;
-    } while (it != end);
+    }
   }
   printf("]");
 }
@@ -200,19 +231,26 @@ List *removeElem(List *l, void *query, Comparator matchFunc) {
 int main() {
   int i;
   List *l = NULL;
+
+  List *(* listAddFunc)(List *, void *) = append;
+#ifdef DEMO_PREPEND
+  listAddFunc = prepend;
+#endif
+
   for (i=0; i < 40; ++i) {
     int *tp = (int *)malloc(sizeof(int));
     *tp = i;
-    l = prepend(l, tp);
-  #ifdef DEBUG
-    printf("Aprespend: %p tp: %p\n", l, tp);
-  #endif
+    l = listAddFunc(l, tp);
   }
 
+#ifdef DEMO_CIRCULARITY
   Node *start = l->head, *end = l->tail;
+
   while (start != end) {
+    printf("start: %p end: %p\n",start, end);
     start = start->next;
   }
+#endif
 
   printList(l);
   printf("\n");

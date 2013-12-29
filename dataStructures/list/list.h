@@ -31,6 +31,8 @@
   inline void *getNextNode(const Node *n);
   inline unsigned int getListSize(const List *l);
 
+  inline void *peek(const List *l);
+  List *append(List *l, void *data);
   List *prepend(List *l, void *data);
   Node *find(List *l, void *query, Comparator comp);
   List *removeElem(List *l, void *query, Comparator comp);
@@ -40,4 +42,6 @@
   // Miscellaneous
   void printList(List *l);
   Comparison intPtrComp(const void *i1, const void *i2);
+
+  inline int isEmpty(const List *l);
 #endif
