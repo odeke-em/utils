@@ -11,6 +11,7 @@
 
   typedef struct Element_ {
     void *value;
+    unsigned int tag:1;
     struct Element_ *next;
   } Element;
 

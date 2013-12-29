@@ -20,19 +20,19 @@ inline Bool hasNext(Element *e) { return e != NULL && e->next != NULL; }
 inline Element *getNext(Element *e) { return e == NULL ? NULL : e->next; }
 inline int getSize(HashList *hl) { return hl == NULL ? 0 : hl->size; }
 
-Element *addToTail(Element *sl, void *data, const Bool overWriteOnDup) {
+Element *addToTail(Element *sl, void *data, const unsigned int tag) {
   if (sl == NULL) {
     sl = initElement(sl);
+    sl->tag = tag;
+    sl->next = NULL;
     sl->value = data;
-  } else if (sl->value != data) {
-    sl->next = addToTail(sl->next, data, overWriteOnDup);
   } else {
-    if (overWriteOnDup) {
-      sl->value = data;
-    } else {
-      //Do something interesting eg store number of visits
-    }
-  }
+  #ifdef HANDLE_COLLISIONS
+    sl->next = addToTail(sl->next, data, tag);
+  #else
+    sl->value = data;
+  #endif
+  } 
 
   return sl;
 }
@@ -160,6 +160,7 @@ Element *pop(HashList *hM, const hashValue hashCode) {
 
   if (getSize(hM)) {
     unsigned int calcIndex = hashCode % getSize(hM);
+    printf("calcIndex: %d gSZ: %d\n", calcIndex, getSize(hM));
     pElement = hM->list[calcIndex];
     hM->list[calcIndex] = NULL;
   }
@@ -214,17 +215,18 @@ hashValue pjwCharHash(const char *srcW) {
 int main() {
   HashList *hl = NULL;
 
-  unsigned int hSize = 10000000;
+  unsigned int hSize = 10000;
 #ifdef EXHIBIT_COLLISION
   hl = initHashListWithSize(hl, hSize/10);
 #else
   hl = initHashListWithSize(hl, hSize);
 #endif
+
   char *tmp = (char *)malloc(4);
   insertElem(hl, tmp, 2);
 
   int i;
-  for (i=0; i < hSize; i++) {
+  for (i=0; i < 100000; i++) {
     int *x = (int *)malloc(sizeof(int));
     *x = i;
     insertElem(hl, x, i);
@@ -247,13 +249,13 @@ int main() {
   }
   if (found != NULL) free(*found);
 #endif
-
-  hashValue hTest = 101;
+  hashValue hTest = 1;
   Element *popd = pop(hl, hTest);
 
   while (popd != NULL) {
     Element *cur = popd;
-    popd = getNext(popd);
+    printf("popd %p\n", popd);
+    popd = popd->next;
 
     if (cur->value != NULL) {
       printf("Elem with hash: %d :: %d\n", hTest, *((int *)cur->value));
