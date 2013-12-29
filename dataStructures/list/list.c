@@ -1,9 +1,10 @@
 // Author: Emmanuel Odeke <odeke@ualberta.ca>
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
+#include "errors.h"
 
 #include "list.h"
+#define DEMO_CIRCULARITY
 
 inline void *getData(const Node *n) { 
   return n == NULL ? NULL : n->data; 
@@ -21,6 +22,12 @@ inline void *getNextNode(const Node *n) {
   return n == NULL ? NULL : n->next; 
 }
 
+void swap(void **a, void **b) {
+  void *tmp = *a;
+  *a = *b;
+  *b = tmp;
+}
+
 inline unsigned int getListSize(const List *l) { 
   return l == NULL ? 0 : l->size; 
 }
@@ -29,16 +36,28 @@ inline Node *allocNode(void) {
   return (Node *)malloc(sizeof(Node)); 
 }
 
+void *pop(Node **n) {
+  void *popd = NULL;
+  if (n != NULL && *n != NULL) {
+    popd = (*n)->data;
+    Node *nextTmp = (*n)->next; 
+    free(*n);
+    *n = nextTmp;
+  }
+
+  return popd;
+}
+
 Comparison intPtrComp(const void *i1, const void *i2) {
-  if (i1 == NULL && i2 == NULL) return EQUAL;
+  if (i1 == NULL && i2 == NULL) return Equal;
   else if (i1 != NULL && i2 != NULL) {
     const int *localI1 = (int *)i1;
     const int *localI2 = (int *)i2;
-    if (*localI1 != *localI2) return *localI1 < *localI2 ? LESSTHAN : GREATERTHAN;
-    else return EQUAL;
+    if (*localI1 != *localI2) return *localI1 < *localI2 ? Less : Greater;
+    else return Equal;
   }
 
-  return i1 == NULL ? LESSTHAN : GREATERTHAN;
+  return i1 == NULL ? Less : Greater;
 }
 
 Node *initNode(Node *n) {
@@ -53,7 +72,7 @@ Node *initNode(Node *n) {
 
 Node *createNewNode(void) {
   Node *newNode = allocNode();
-  assert(newNode != NULL);
+  assert(newNode);
   
   newNode = initNode(newNode);
   return newNode;
@@ -71,7 +90,7 @@ List *initList(List *l) {
 
 List *createNewList(void) {
   List *newList = allocList();
-  assert(newList != NULL);
+  assert(newList);
   
   newList = initList(newList);
   return newList;
@@ -103,6 +122,7 @@ List *append(List *l, void *data) {
     l->tail->data = data;
   }
 
+  ++l->size;
   return l;
 }
 
@@ -144,25 +164,29 @@ void destroyList(List *l) {
   if (l != NULL) {
     Node *start = l->head, *end = l->tail, *tmp = NULL;
 
-    while (start != end) {
-      tmp = start->next;
-      if (start == NULL) break;
+    if (start != NULL) {
+      while (start != end) {
+	tmp = start->next;
+	if (start == NULL) break;
 
-      if (start->data != NULL)  {
-	if (start->freeData == NULL) 
-	  free(start->data);
-	else
-	  start->freeData(start->data);
+	if (start->data != NULL)  {
+	  if (start->freeData == NULL) 
+	    free(start->data);
+	  else
+	    start->freeData(start->data);
 
+	}
+	free(start);
+	start = tmp;
       }
-      free(start);
-      start = tmp;
+
+      if (end != NULL) {
+	if (end->data != NULL) free(end->data);
+	free(end);
+      }
     }
 
-    if (end != NULL) {
-      if (end->data != NULL) free(end->data);
-      free(end);
-    }
+    l->tail = NULL; // No more access to the tail either
 
     free(l);
     l = NULL;
@@ -189,7 +213,7 @@ Node *find(List *l, void *query, Comparator matchFunc) {
     do {
       if (it == NULL) break;
     
-      if (matchFunc(it->data, query) == EQUAL) {
+      if (matchFunc(it->data, query) == Equal) {
 	result = it;
 	break;
       }
@@ -204,7 +228,7 @@ List *removeElem(List *l, void *query, Comparator matchFunc) {
   if (l != NULL && matchFunc != NULL) {
     Node *prev = NULL, *cur = l->head, *end = l->tail;
     while (cur != NULL) {
-      if (matchFunc(cur->data, query) == EQUAL) break;
+      if (matchFunc(cur->data, query) == Equal) break;
 
       prev = cur;
       cur = cur->next;
@@ -221,6 +245,7 @@ List *removeElem(List *l, void *query, Comparator matchFunc) {
       if (cur->data != NULL) free(cur->data);
       free(cur);
       cur = NULL;
+      --l->size;
     }
   }
   return l;
@@ -244,11 +269,13 @@ int main() {
   }
 
 #ifdef DEMO_CIRCULARITY
-  Node *start = l->head, *end = l->tail;
-
-  while (start != end) {
-    printf("start: %p end: %p\n",start, end);
-    start = start->next;
+  while (l->head != NULL) {
+    void *vSav = pop(&(l->head));
+    if (vSav != NULL) {
+      printf("vS: %d\n", *(int *)vSav);
+      free(vSav);
+    }
+    break;
   }
 #endif
 
@@ -256,8 +283,11 @@ int main() {
   printf("\n");
 
   i = 8;
+
+  printf("Size: %d\n", getListSize(l));
   l = removeElem(l, &i, intPtrComp);
 
+  printf("Size: %d\n", getListSize(l));
   printList(l);
   printf("\n");
   destroyList(l);

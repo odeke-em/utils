@@ -2,7 +2,7 @@
 #ifndef _LIST_H
 #define _LIST_H
   typedef enum {
-    LESSTHAN=-1, EQUAL=0, GREATERTHAN=1
+    Less=-1, Equal=0, Greater=1
   } Comparison;
 
   typedef struct Node_ {
@@ -30,6 +30,7 @@
   inline void *getData(const Node *n);
   inline void *getNextNode(const Node *n);
   inline unsigned int getListSize(const List *l);
+  void *pop(Node **n);
 
   inline void *peek(const List *l);
   List *append(List *l, void *data);
@@ -43,5 +44,6 @@
   void printList(List *l);
   Comparison intPtrComp(const void *i1, const void *i2);
 
+  void swap(void **a, void **b);
   inline int isEmpty(const List *l);
 #endif
