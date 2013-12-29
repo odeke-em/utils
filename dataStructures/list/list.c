@@ -10,6 +10,10 @@ inline void *getData(const Node *n) {
   return n == NULL ? NULL : n->data; 
 }
 
+inline Tag getTag(const Node *n) {
+  return n == NULL ? Unknown : n->tag;
+}
+
 inline void *peek(const List *l) {
   return isEmpty(l) ? NULL : getData(l->head);
 }
@@ -102,6 +106,10 @@ inline List *allocList(void) {
 }
 
 List *append(List *l, void *data) {
+  return appendAndTag(l, data, Heapd);
+}
+
+List *appendAndTag(List *l, void *data, Tag tag) {
   if (l == NULL) {
     l = createNewList();
   }
@@ -110,15 +118,18 @@ List *append(List *l, void *data) {
     // First item being added to the list
     l->head = createNewNode();
     l->head->data = data;
+    l->head->tag = tag;
     l->tail = NULL;
     l->head->next = l->tail;
   } else if (l->tail == NULL) {
     l->tail = createNewNode(); 
     l->tail->data = data;
+    l->tail->tag = tag;
     l->head->next = l->tail;
   } else {
     l->tail->next = createNewNode();
     l->tail = l->tail->next;
+    l->tail->tag = tag;
     l->tail->data = data;
   }
 
@@ -127,6 +138,10 @@ List *append(List *l, void *data) {
 }
 
 List *prepend(List *l, void *data) {
+  return prependAndTag(l, data, Heapd);
+}
+
+List *prependAndTag(List *l, void *data, Tag tag) {
 #ifdef DEBUG
   printf("\033[32m%s\033[00m\n", __func__);
 #endif
@@ -139,12 +154,14 @@ List *prepend(List *l, void *data) {
     // First item being added to the list
     l->head = createNewNode();
     l->head->data = data;
+    l->head->tag = tag;
     l->tail = l->head;
   } else {
     // Adding to the front
     Node *newEnd = createNewNode();
     newEnd->data = data;
     newEnd->next = l->head;
+    newEnd->tag = tag;
     l->head = newEnd;
     l->tail->next = l->head;
   }
@@ -165,17 +182,18 @@ void destroyList(List *l) {
     Node *start = l->head, *end = l->tail, *tmp = NULL;
 
     if (start != NULL) {
+      void (*dataFreer)(void *) = NULL;
       while (start != end) {
 	tmp = start->next;
 	if (start == NULL) break;
 
-	if (start->data != NULL)  {
+	if (start->tag == Heapd && start->data != NULL)  {
 	  if (start->freeData == NULL) 
 	    free(start->data);
 	  else
 	    start->freeData(start->data);
-
 	}
+
 	free(start);
 	start = tmp;
       }
