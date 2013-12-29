@@ -169,7 +169,7 @@ void destroyList(List *l) {
   }
 }
 
-void printList(List *l) {;
+void printList(List *l) {
   printf("[");
   if (l != NULL) {
     Node *it = l->head, *end = l->tail;
@@ -182,7 +182,7 @@ void printList(List *l) {;
   printf("]");
 }
 
-Node *find(List *l, void *query, Comparator matchFunc) {;
+Node *find(List *l, void *query, Comparator matchFunc) {
   Node *result = NULL;
   if (l != NULL && matchFunc != NULL) {
     Node *it = l->head, *end = l->tail;
