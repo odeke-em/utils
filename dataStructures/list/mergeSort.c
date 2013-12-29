@@ -25,11 +25,13 @@ List *merge(Node **left, Node **right, const Comparator compare) {
   }
 
   while (*left != NULL) {
-    merged = appendAndTag(merged, pop(left), getTag(*left));
+    savTag = getTag(*left);
+    merged = appendAndTag(merged, pop(left), savTag);
   }
 
   while (*right != NULL) {
-    merged = appendAndTag(merged, pop(right), getTag(*right));
+    savTag = getTag(*right);
+    merged = appendAndTag(merged, pop(right), savTag);
   }
 
   return merged;
