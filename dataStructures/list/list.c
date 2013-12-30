@@ -40,16 +40,16 @@ inline Node *allocNode(void) {
   return (Node *)malloc(sizeof(Node)); 
 }
 
-void *pop(Node **n) {
-  void *popd = NULL;
+void *listPop(Node **n) {
+  void *listPopd = NULL;
   if (n != NULL && *n != NULL) {
-    popd = (*n)->data;
+    listPopd = (*n)->data;
     Node *nextTmp = (*n)->next; 
     free(*n);
     *n = nextTmp;
   }
 
-  return popd;
+  return listPopd;
 }
 
 Comparison intPtrComp(const void *i1, const void *i2) {
@@ -85,8 +85,8 @@ Node *createNewNode(void) {
 List *initList(List *l) {
   if (l != NULL) {
     l->size = 0;
-    l->head = initNode(l->head);
-    l->tail = initNode(l->tail);
+    l->head = NULL;
+    l->tail = NULL;
   }
 
   return l;
@@ -106,10 +106,14 @@ inline List *allocList(void) {
 }
 
 List *append(List *l, void *data) {
-  return appendAndTag(l, data, Heapd);
+  return appendAndTag(l, data, Heapd, NULL);
 }
 
-List *appendAndTag(List *l, void *data, Tag tag) {
+List *appendWithFreer(List *l, void *data, void (*freer)(void *)) {
+  return appendAndTag(l, data, Heapd, freer);
+}
+
+List *appendAndTag(List *l, void *data, Tag tag, void (*freer)(void *)) {
   if (l == NULL) {
     l = createNewList();
   }
@@ -242,6 +246,16 @@ Node *find(List *l, void *query, Comparator matchFunc) {
   return result;
 }
 
+void *popHead(List *l) {
+  void *popd = NULL;
+  if (l != NULL && l->head != NULL) {
+    popd = listPop(&l->head);
+    --l->size;
+  }
+
+  return popd;
+}
+
 List *removeElem(List *l, void *query, Comparator matchFunc) {
   if (l != NULL && matchFunc != NULL) {
     Node *prev = NULL, *cur = l->head, *end = l->tail;
@@ -288,7 +302,7 @@ int main() {
 
 #ifdef DEMO_CIRCULARITY
   while (l->head != NULL) {
-    void *vSav = pop(&(l->head));
+    void *vSav = listPop(&(l->head));
     if (vSav != NULL) {
       printf("vS: %d\n", *(int *)vSav);
       free(vSav);

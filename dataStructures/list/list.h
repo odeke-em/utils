@@ -10,9 +10,9 @@
   } Tag;
 
   typedef struct Node_ {
+    Tag tag;
     void *data;
     struct Node_ *next;
-    Tag tag;
     int (*freeData)(void *data);
   } Node;
 
@@ -36,10 +36,12 @@
   inline Tag getTag(const Node *n);
   inline unsigned int getListSize(const List *l);
 
-  void *pop(Node **n);
+  void *listPop(Node **n);
+  void *popHead(List *l);
   inline void *peek(const List *l);
 
-  List *appendAndTag(List *l, void *data, Tag tag);
+  List *appendAndTag(List *l, void *data, Tag tag, void (*freer)(void *));
+  List *appendWithFreer(List *l, void *data, void (*freer)(void *));
 
   // If no tag is explicitly provided, it is assumed that data is memory
   // obtained by a call to malloc or an object that exists on the heap
