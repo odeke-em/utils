@@ -9,11 +9,11 @@
 Cache *setTagValue(Cache *c, unsigned int tagValue) {
   if (c != NULL) {
     Node *start = c->head, *end = c->tail;
-    do {
-      if (start == NULL) break;
+    while (start != NULL) {
       start->tag = tagValue;
+      if (start == end) break;
       start = start->next;
-    } while (start != end);
+    }
   }
 
   return c;
@@ -22,7 +22,7 @@ Cache *setTagValue(Cache *c, unsigned int tagValue) {
 Cache *purgeLRU(Cache *c) {
   if (c != NULL) {
     Node *it = c->head, *end = c->tail, *prev = c->head;
-    while (it != end) {
+    while (it != NULL) {
       if (it->tag == 0) { // Hasn't been accessed since the last cycle
    
 	if (it->data != NULL) {
@@ -49,6 +49,8 @@ Cache *purgeLRU(Cache *c) {
 	prev = it;
 	it = it->next;
       }
+
+      if (it == end) break;
     }
   }
 
@@ -80,29 +82,33 @@ int main() {
     c = prepend(c, newI);
   }
 
-  printList(c);
   c = setTagValue(c, 0);
+  printList(c);
   printf("\n");
+
+  printf("Before purge 1\n");
+  printList(c);
 
   for (i= 2; i < 8; ++i) {
     lookUpEntry(c, &i, intPtrComp);
   }
 
-  printf("Before purge 1\n");
+  printf("\nAfter lookUp 1\n");
   printList(c);
+
   printf("\nAfter purge 1\n");
   c = purgeLRU(c);
   printList(c);
   printf("\n");
   printf("Next cycle\n");
 
-  for (i=0; i < 1500; ++i) {
+  for (i=0; i < 15; ++i) {
     int *newI = (int *)malloc(sizeof(int));
     *newI = i;
-    c = prepend(c, newI);
+    c = append(c, newI);
   }
 
-  for (i=900; i < 1000; ++i) {
+  for (i=90; i < 100; ++i) {
     lookUpEntry(c, &i, intPtrComp);
   }
 
