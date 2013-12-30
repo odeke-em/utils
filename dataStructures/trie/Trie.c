@@ -1,5 +1,6 @@
 // Author: Emmanuel Odeke <odeke@ualberta.ca>
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 
