@@ -11,13 +11,12 @@
 #endif
 
 
-Trie *createTrie(const int index) {
+Trie *createTrie() {
   Trie *freshTrie = allocTrie();
   if (freshTrie == NULL) {
     raiseError("Run-out of memory");
   }
 
-  freshTrie->index = index;
   freshTrie->keys = (Trie **)malloc(sizeof(Trie *) * radixSize);
 
   if (freshTrie->keys == NULL) {
@@ -72,7 +71,7 @@ Trie *addSequence(Trie *tr, const char *seq) {
     int targetIndex = resolveIndex(*seq);
     if (targetIndex >= 0 && targetIndex < radixSize) {
       if (tr->keys[targetIndex] == NULL) {
-	tr->keys[targetIndex] = createTrie(targetIndex);
+	tr->keys[targetIndex] = createTrie();
       #ifdef DEBUG
 	printf("New Trie alloc index: %d\n", targetIndex);
       #endif
@@ -120,12 +119,10 @@ int resolveIndex(const char c) {
   return resIndex;
 }
 int main() {
-  Trie *tR = createTrie(0);
-  printf("tR->index: %d\n", tR->index);
+  Trie *tR = createTrie();
   tR = addSequence(tR, "abc\0");
   tR = addSequence(tR, "mbc\0");
   tR = addSequence(tR, "mac\0");
-  printf("tR->index: %d\n", tR->index);
   int found = searchTrie(tR, "mb\0");
   printf("\033[%dmFound: %d\033[00m\n", found == 1 ? 33 : 31, found);
 

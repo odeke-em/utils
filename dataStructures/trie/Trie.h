@@ -7,7 +7,6 @@
 
   typedef struct Trie_ {
     int radixSz;
-    unsigned int index;
     struct Trie_ **keys;
   } Trie;
 
@@ -16,7 +15,7 @@
 
   Trie *destroyTrie(Trie *tr);
 
-  Trie *createTrie(const int index);
+  Trie *createTrie();
  
   // Utilities here 
 
