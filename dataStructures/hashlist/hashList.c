@@ -12,7 +12,6 @@
   #undef DEBUG
 #endif
 
-#define HANDLE_COLLISIONS
 #define EXHIBIT_COLLISION
 #define EXHIBIT_GET_BY_REFERENCE
 
@@ -20,19 +19,31 @@ inline Bool hasNext(Element *e) { return e != NULL && e->next != NULL; }
 inline Element *getNext(Element *e) { return e == NULL ? NULL : e->next; }
 inline int getSize(HashList *hl) { return hl == NULL ? 0 : hl->size; }
 
-Element *addToTail(Element *sl, void *data, const unsigned int tag) {
+Element *addToTail(Element *sl, void *data) {
+  sl = addToTailWithMetaInfo(sl, data, 0);
+  return sl;
+}
+
+Element *addToTailWithMetaInfo(Element *sl, void *data, const int metaInfo) {
   if (sl == NULL) {
     sl = initElement(sl);
-    sl->tag = tag;
-    sl->next = NULL;
     sl->value = data;
+    sl->metaInfo = metaInfo;
   } else {
-  #ifdef HANDLE_COLLISIONS
-    sl->next = addToTail(sl->next, data, tag);
-  #else
+    sl->next = initElement(sl->next);
     sl->value = data;
-  #endif
-  } 
+    sl->metaInfo = metaInfo;
+    sl->next = sl->next->next;
+  }
+
+  return sl;
+}
+
+Element *addToHeadWithRank(Element *sl, void *data, const double rank) {
+  sl = addToHead(sl, data);
+  if (sl != NULL) {
+    sl->rank = rank;
+  }
 
   return sl;
 }
@@ -48,7 +59,7 @@ Element *addToHead(Element *sl, void *data) {
     newElem->next = sl;
     sl = newElem;
   }
-  
+
   return sl;
 }
 
@@ -59,6 +70,9 @@ Element *initElement(Element *elem) {
 
   elem->next = NULL;
   elem->value = NULL;
+  elem->rank = 1; // Iniitally rank is at 100%
+  elem->metaInfo = 0;
+  elem->dTag = False; // Hasn't been discovered
 
   return elem;
 }
@@ -68,6 +82,11 @@ HashList *initHashListWithSize(HashList *hl, const int size) {
     hl = (HashList *)malloc(sizeof(HashList));
     raiseExceptionIfNull(hl);
   }
+
+  // By default not allowing collisons 
+  hl->allowCollisions = False;
+
+  hl->averageElemLen = 0;
 
   if (size > 0) {
     hl->size = size;
@@ -88,6 +107,9 @@ HashList *initHashListWithSize(HashList *hl, const int size) {
     #endif
       *listIter++ = NULL;
     }
+  } else {
+    hl->list = NULL;
+    hl->size = 0;
   }
 
   return hl;
@@ -116,12 +138,18 @@ void insertElem(HashList *hl, void *data, const hashValue hashCode) {
     hl->list[elemIndex] = initElement(hl->list[elemIndex]);
     hl->list[elemIndex]->value = data;
   } else {
-    #ifdef HANDLE_COLLISIONS
+    if (hl->allowCollisions) {
+      hl->list[elemIndex] = addToHead(hl->list[elemIndex], data);
+    } else {
+      void *prevData = hl->list[elemIndex]->value;
+      if (prevData != NULL) {
+	free(prevData);
+	// Or better will use the custom freer function
+      }
+
       // Always update to the latest value
-      hl->list[elemIndex] = addToTail(hl->list[elemIndex], data, True);
-    #else 
       hl->list[elemIndex]->value = data;
-    #endif
+    }
   }
 }
 
@@ -160,7 +188,6 @@ Element *pop(HashList *hM, const hashValue hashCode) {
 
   if (getSize(hM)) {
     unsigned int calcIndex = hashCode % getSize(hM);
-    printf("calcIndex: %d gSZ: %d\n", calcIndex, getSize(hM));
     pElement = hM->list[calcIndex];
     hM->list[calcIndex] = NULL;
   }
@@ -215,18 +242,17 @@ hashValue pjwCharHash(const char *srcW) {
 int main() {
   HashList *hl = NULL;
 
-  unsigned int hSize = 10000;
+  unsigned int hSize = 10000000;
 #ifdef EXHIBIT_COLLISION
   hl = initHashListWithSize(hl, hSize/10);
 #else
   hl = initHashListWithSize(hl, hSize);
 #endif
-
   char *tmp = (char *)malloc(4);
   insertElem(hl, tmp, 2);
 
   int i;
-  for (i=0; i < 100000; i++) {
+  for (i=0; i < hSize; i++) {
     int *x = (int *)malloc(sizeof(int));
     *x = i;
     insertElem(hl, x, i);
@@ -249,13 +275,13 @@ int main() {
   }
   if (found != NULL) free(*found);
 #endif
-  hashValue hTest = 1;
+
+  hashValue hTest = 101;
   Element *popd = pop(hl, hTest);
 
   while (popd != NULL) {
     Element *cur = popd;
-    printf("popd %p\n", popd);
-    popd = popd->next;
+    popd = getNext(popd);
 
     if (cur->value != NULL) {
       printf("Elem with hash: %d :: %d\n", hTest, *((int *)cur->value));
