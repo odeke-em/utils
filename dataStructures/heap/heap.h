@@ -26,12 +26,22 @@
   int heapInsert(Heap *h, void *data);
   int heapExtract(Heap *h, const void **storage);
   Heap *heapify(Heap *h, const int targetIndex);
+  Heap *heapifyFromHead(Heap *h);
 
   inline int getSize(Heap *h);
 
-  Heap *destroyHeap(Heap *h);
   Heap *heapSort(Heap *h);
 
+  Heap *destroyHeap(Heap *h);
+
+  // Find the address of the query element
+  void **getAddrOf(Heap *h, void *query);
+
+  // Pop method
+  void *removeElem(Heap *h, void *similarElem);
+
   // Miscellaneous
+  inline void *peek(Heap *p);
   inline void swap(void **a, void **b);
+  void printHeap(Heap *h, void (*iterPrint)(void *));
 #endif

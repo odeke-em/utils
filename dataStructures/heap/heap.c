@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #include "heap.h"
 
@@ -17,6 +18,10 @@ inline void swap(void **a, void **b) {
 
 inline int getSize(Heap *h) {
   return h == NULL || h->tree == NULL ? 0 : h->size;
+}
+
+inline void *peek(Heap *p) {
+  return isEmpty(p) ? NULL : p->tree[0];
 }
 
 Heap *initHeap(Heap *h, Comparator comp, Destructor destroy) {
@@ -54,6 +59,50 @@ Heap *heapify(Heap *h, const int targetIndex) {
   return h;
 }
 
+void **getAddrOf(Heap *h, void *elem) {
+  void *addr = NULL;
+  if (h != NULL && h->tree != NULL && h->compare != NULL) {
+    int left=0, right=getSize(h) - 1;
+    while (left <= right) {
+      if (h->compare(elem, h->tree[left]) == Equal) {
+	addr = h->tree + left; break;
+      } else if  (h->compare(elem, h->tree[right]) == Equal) {
+	addr = h->tree + right; break;
+      } else {
+	++left, --right;
+      }
+    }
+  }
+
+  return addr;
+}
+
+void *removeElem(Heap *h, void *similarElem) {
+  void *popdElem = NULL;
+  if (h != NULL && h->tree != NULL && h->compare != NULL) {
+    void **addrOfElem = getAddrOf(h, similarElem);
+    if (addrOfElem != NULL) {
+      popdElem = *addrOfElem;
+
+      int unWantedIdx = addrOfElem - h->tree;
+      void **newTree = (void **)malloc(sizeof(void *) * (h->size - 1));
+
+      int travIdx, i;
+      for (travIdx=0, i=0; travIdx < h->size; ++travIdx) {
+	if (travIdx != unWantedIdx) {
+	  newTree[i++] = h->tree[travIdx];
+	}
+      }
+
+      --h->size;
+      h->tree = newTree;
+      h = heapifyFromHead(h);
+    }
+  }
+
+  return popdElem;
+}
+
 int heapInsert(Heap *h, void *data) {
   if (h != NULL) {
     int extraSize = h->size + 1;
@@ -74,6 +123,40 @@ int heapInsert(Heap *h, void *data) {
   }
 }
 
+Heap *heapifyFromHead(Heap *h) {
+  // Push the contents of the new top downward
+  int lPos, rPos, markedPos, curPos = 0;
+  int size = getSize(h);
+  Comparator comp = h->compare; 
+  while (1 && curPos < size) {
+    lPos = leftChild(curPos);
+    rPos = rightChild(curPos);
+
+    if (lPos < size && comp(h->tree[lPos], h->tree[curPos]) == Greater) {
+       markedPos = lPos;
+    } else {
+      markedPos = curPos;
+    }
+
+    if (rPos < size && comp(h->tree[rPos], h->tree[markedPos]) == Greater) {
+      markedPos = rPos;
+    }
+
+    // When the marked position is the current positon,
+    // heap property has been restored
+    if (markedPos == curPos) {
+      break;
+    } else {
+      swap(h->tree + markedPos, h->tree + curPos);
+    }
+
+    // Continue heapifying by moving another level down
+    curPos = markedPos;
+  }
+
+  return h;
+}
+
 int heapExtract(Heap *h, const void **storage) {
   if (h == NULL || h->tree == NULL) {
     return -1;
@@ -86,38 +169,8 @@ int heapExtract(Heap *h, const void **storage) {
       h->tree = (void **)realloc(h->tree, sizeof(void *) * decrSz);
       h->tree[0] = lastNode;
       --h->size;
-
       // Push the contents of the new top downward
-      int lPos, rPos, markedPos,
-	  curPos = 0;
-      Comparator comp = h->compare; 
-      while (1 && curPos < decrSz) {
-	lPos = leftChild(curPos);
-	rPos = rightChild(curPos);
-
-	if (lPos < decrSz && comp(h->tree[lPos], h->tree[curPos]) == Greater) {
-	  markedPos = lPos;
-	} else {
-	  markedPos = curPos;
-	}
-
-	if  (rPos < decrSz
-	  && comp(h->tree[rPos], h->tree[markedPos]) == Greater
-	) {
-	  markedPos = rPos;
-	}
-
-	// When the marked position is the current positon,
-	// heap property has been restored
-	if (markedPos == curPos) {
-	  break;
-	} else {
-	  swap(h->tree + markedPos, h->tree + curPos);
-	}
-
-	// Continue heapifying by moving another level down
-	curPos = markedPos;
-      }
+      h = heapifyFromHead(h);
     } else { // Last element
       h->size = 0;
       free(h->tree);
@@ -151,13 +204,18 @@ Heap *destroyHeap(Heap *h) {
   return h;
 }
 
-void printHeap(Heap *h) {
+void intPtrPrint(void *it) {
+  printf(" %d", it == NULL ? 0 : *(int *)it);
+}
+
+void printHeap(Heap *h, void (*iterPrint)(void *)) {
   printf("[ ");
   if (h != NULL && h->tree != NULL) {
     void **it = h->tree,
 	 **end = it + h->size;
+
     while (it != end) {
-      printf("%d ", *(int *)*it++);
+      iterPrint(*it++);
     }
   }
   printf("]\n");
@@ -186,7 +244,7 @@ int main() {
     heapInsert(h, apt);
   }
 
-  printHeap(h);
+  printHeap(h, intPtrPrint);
 #ifdef DEMO_EXTRACTION
   while (! isEmpty(h)) {
     int *tp = NULL;
