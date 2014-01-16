@@ -1,10 +1,13 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 # Author: Emmanuel Odeke <odeke@ualberta.ca>
 # Logger to help with note taking eg during project collaboration
 
 import os
 import sys
 from time import ctime
+
+pyVersion = sys.hexversion / (1<<24)
+stdinReader = raw_input if pyVersion < 3 else input
 
 from optparse import OptionParser
 
@@ -73,7 +76,7 @@ def noteLogger(notesFile, username):
   @Logger(notesFile, username)
   def newNoteTaker(*args, **kwargs):
     try:
-      notes = input("\033[92mYour notes here: \033[00m")
+      notes = stdinReader("\033[92mYour notes here: \033[00m")
     except KeyboardInterrupt:
       return None
 
