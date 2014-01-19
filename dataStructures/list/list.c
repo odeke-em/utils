@@ -331,15 +331,14 @@ Node *find(List *l, void *query, Comparator matchFunc) {
   Node *result = NULL;
   if (l != NULL && matchFunc != NULL) {
     Node *it = l->head, *end = l->tail;
-    do {
-      if (it == NULL) break;
-    
+    while (it != NULL) {
       if (matchFunc(it->data, query) == Equal) {
         result = it;
         break;
       }
+
       it = it->next;
-    } while (it != end);
+    }
   }
 
   return result;
