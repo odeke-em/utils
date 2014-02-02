@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Author: Emmanuel Odeke <odeke@ualberta.ca>
 # Logger to help with note taking eg during project collaboration
 
@@ -26,7 +26,7 @@ class Logger(object):
   def __initLogFile(self):
     self.__fp = open(self.__outPath, "a")
     if self.__fp == -1:
-      raise Exception("Failed to initiated logfile %s"%(self.__outPath))
+      raise Exception("Failed to initiate logfile %s"%(self.__outPath))
 
   def writeToLog(self, msg):
     if self.__fp == -1:
@@ -49,7 +49,7 @@ class Logger(object):
       self.__logMetaInfo()
 
     self.__logTime()
-    self.writeToLog(msg+"\n")
+    self.writeToLog("%s\n"%(msg))
    
   def __flush(self):
     if hasattr("flush", self.__fp): 
