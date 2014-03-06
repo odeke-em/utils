@@ -18,7 +18,7 @@ Comparison parcelCompare(const void *pA, const void *pB) {
     return Equal;
   }
 }
-
+#ifdef REV_MAIN
 int main() {
   Parcel parcels[] = {
     10, printParcel, Clear, 12, setDataCost, Clear,
@@ -51,3 +51,4 @@ int main() {
   destroyHeap(pQ);
   return 0;
 }
+#endif

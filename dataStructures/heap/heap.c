@@ -3,8 +3,13 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <pthread.h>
 
 #include "heap.h"
+
+static pthread_mutex_t heapMutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t heapCondt = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t removeElemMutex = PTHREAD_MUTEX_INITIALIZER;
 
 inline Heap *newHeap() {
   return (Heap *)malloc(sizeof(Heap));
@@ -17,7 +22,7 @@ inline void swap(void **a, void **b) {
 }
 
 inline int getSize(Heap *h) {
-  return h == NULL || h->tree == NULL ? 0 : h->size;
+  return (h == NULL || h->tree == NULL ? 0 : h->size);
 }
 
 inline void *peek(Heap *p) {
@@ -38,23 +43,25 @@ Heap *initHeap(Heap *h, Comparator comp, Destructor destroy) {
 }
 
 Heap *heapify(Heap *h, const int targetIndex) {
+  pthread_mutex_lock(&heapMutex);
   if (targetIndex >= 0 && targetIndex <= h->size) {
     Comparator comp = h->compare;
     int endIndex = targetIndex, parentIndex = getParent(endIndex);
     while (1) {
       if (comp(h->tree[endIndex], h->tree[parentIndex]) == Greater) {
       #ifdef DEBUG
-	printf("swapping\n");
+        printf("swapping\n");
       #endif
-	swap(h->tree + endIndex, h->tree + parentIndex);
+        swap(h->tree + endIndex, h->tree + parentIndex);
       } else {
-	break;
+        break;
       }
 
       endIndex = parentIndex;
       parentIndex = getParent(endIndex);
     }
   }
+  pthread_mutex_unlock(&heapMutex);
 
   return h;
 }
@@ -65,11 +72,11 @@ void **getAddrOf(Heap *h, void *elem) {
     int left=0, right=getSize(h) - 1;
     while (left <= right) {
       if (h->compare(elem, h->tree[left]) == Equal) {
-	addr = h->tree + left; break;
+        addr = h->tree + left; break;
       } else if  (h->compare(elem, h->tree[right]) == Equal) {
-	addr = h->tree + right; break;
+        addr = h->tree + right; break;
       } else {
-	++left, --right;
+        ++left, --right;
       }
     }
   }
@@ -79,6 +86,7 @@ void **getAddrOf(Heap *h, void *elem) {
 
 void *removeElem(Heap *h, void *similarElem) {
   void *popdElem = NULL;
+  pthread_mutex_lock(&removeElemMutex);
   if (h != NULL && h->tree != NULL && h->compare != NULL) {
     void **addrOfElem = getAddrOf(h, similarElem);
     if (addrOfElem != NULL) {
@@ -89,9 +97,9 @@ void *removeElem(Heap *h, void *similarElem) {
 
       int travIdx, i;
       for (travIdx=0, i=0; travIdx < h->size; ++travIdx) {
-	if (travIdx != unWantedIdx) {
-	  newTree[i++] = h->tree[travIdx];
-	}
+        if (h->compare(similarElem, h->tree[travIdx]) != Equal) {
+          newTree[i++] = h->tree[travIdx];
+        }
       }
 
       --h->size;
@@ -99,6 +107,7 @@ void *removeElem(Heap *h, void *similarElem) {
       h = heapifyFromHead(h);
     }
   }
+  pthread_mutex_unlock(&removeElemMutex);
 
   return popdElem;
 }
@@ -126,8 +135,10 @@ int heapInsert(Heap *h, void *data) {
 Heap *heapifyFromHead(Heap *h) {
   // Push the contents of the new top downward
   int lPos, rPos, markedPos, curPos = 0;
+  printf("heapifyLock in\n");
   int size = getSize(h);
   Comparator comp = h->compare; 
+  pthread_mutex_lock(&heapMutex);
   while (1 && curPos < size) {
     lPos = leftChild(curPos);
     rPos = rightChild(curPos);
@@ -153,6 +164,8 @@ Heap *heapifyFromHead(Heap *h) {
     // Continue heapifying by moving another level down
     curPos = markedPos;
   }
+  // pthread_cond_broadcast(&heapCondt);
+  pthread_mutex_unlock(&heapMutex);
 
   return h;
 }
@@ -185,13 +198,13 @@ Heap *destroyHeap(Heap *h) {
   if (h != NULL) {
     if (h->tree != NULL) {
       if (h->destroy != NULL) {
-	void **it = h->tree, 
-	   **end = it + h->size;
-	while (it != end) {
-	  if (*it != NULL)
-	    h->destroy(*it);
-	  ++it;
-	}
+        void **it = h->tree, 
+            **end = it + h->size;
+        while (it != end) {
+          if (*it != NULL)
+            h->destroy(*it);
+          ++it;
+        }
       }
 
       free(h->tree);
@@ -212,7 +225,7 @@ void printHeap(Heap *h, void (*iterPrint)(void *)) {
   printf("[ ");
   if (h != NULL && h->tree != NULL) {
     void **it = h->tree,
-	 **end = it + h->size;
+         **end = it + h->size;
 
     while (it != end) {
       iterPrint(*it++);
