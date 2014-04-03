@@ -2,46 +2,45 @@
 # Author: Emmanuel Odeke <odeke@ualberta.ca>
 
 import time
-import multiprocessing
 from threading import Thread
 
 import LockUtil # Local module
 
-gDict = dict() # Globally shared resource
+GDICT = dict() # Globally shared resource
 
-@LockUtil.Locker
-def sHingle():
-    key = len(gDict)
-    print('sHingle', key, gDict)
-    gDict[2] = gDict.get(2, 0) - 1
-    return gDict
+@LockUtil.locker
+def shingle():
+    key = len(GDICT)
+    print('shingle', key, GDICT)
+    GDICT[2] = GDICT.get(2, 0) - 1
+    return GDICT
 
-@LockUtil.Locker
-def pHingle():
-    key = len(gDict)
-    print('pHingle', key, gDict)
-    gDict[2] = gDict.get(2, 0) + 2
-    return gDict
+@LockUtil.locker
+def phingle():
+    key = len(GDICT)
+    print('phingle', key, GDICT)
+    GDICT[2] = GDICT.get(2, 0) + 2
+    return GDICT
 
-@LockUtil.Retrieable
+@LockUtil.retrieable
 def retrier(func, *args, **kwargs):
     results = func(*args, **kwargs)
     return results
 
-def main():            
+def main():
     for i in range(40):
         if i & 1:
-            func = sHingle
+            func = shingle
         else:
-            func = pHingle
+            func = phingle
 
-        th = Thread(target=retrier, args=(func,))
-        th.start()
+        runnable = Thread(target=retrier, args=(func,))
+        runnable.start()
 
-    m = 0
-    while m < 20:
+    counter = 0
+    while counter < 20:
         time.sleep(1)
-        m = gDict.get(2, 0)
+        counter = GDICT.get(2, 0)
         # print('Refresh', m)
 
 if __name__ == '__main__':
