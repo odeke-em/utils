@@ -31,7 +31,7 @@ def locker(func):
 
     return __anon
 
-def retrieable(func, timeout=0.2):
+def retryable(func, timeout=0.2):
     def __functor(*args, **kwargs):
         results = func(*args, **kwargs)
         if results and hasattr(results, 'get'):

@@ -22,7 +22,7 @@ def phingle():
     GDICT[2] = GDICT.get(2, 0) + 2
     return GDICT
 
-@LockUtil.retrieable
+@LockUtil.retryable
 def retrier(func, *args, **kwargs):
     results = func(*args, **kwargs)
     return results
