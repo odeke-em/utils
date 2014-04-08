@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
+# Author: Emmanuel Odeke <odeke@ualberta.ca>
 
 import time
 import inspect
 import multiprocessing
 from threading import Thread
-
-from LockUtil import retryable
 
 class JobRunner(object):
     def __init__(self):
@@ -65,7 +64,7 @@ class JobRunner(object):
         return __functor
 
     def __run(self, func, callback, *args, **kwargs):
-        functor = retryable(func)
+        functor = self.retryable(func)
         results = functor(*args, **kwargs)
         if callback and inspect.isfunction(callback):
             return callback(results)
