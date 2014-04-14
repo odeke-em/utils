@@ -97,6 +97,7 @@ int main() {
     while (it != end) {
         printf("%d ", it->first);
         printVector(it->second);
+        delete it->second;
         ++it;
     }
 
