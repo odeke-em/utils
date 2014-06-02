@@ -1,16 +1,37 @@
 // Author: Emmanuel Odeke <odeke@ualberta.ca>
-
+#include <errno.h>
+#include <ctype.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <fcntl.h>
 #include <assert.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
 
 #include "radTrie.h"
-
-static unsigned int BASE = 10;
+#include "errors.h"
 
 inline RTrie *allocRTrie(void) {
     return (RTrie *)malloc(sizeof(RTrie));
+}
+
+unsigned int pjwCharHash(const char *srcW) {
+    // PJW hashing algorithm
+    unsigned int h = 0, g, i, srcLen = strlen(srcW) / sizeof(char);
+
+    for (i=0; i < srcLen; ++i) {
+        h = (h << 4) + srcW[i];
+        g = h & 0xf0000000;
+        if (g) {
+            h ^= (g >> 24);
+            h ^= g;
+        }
+    }
+
+    return h;
 }
 
 RTrie *newRTrie(void) {
@@ -49,6 +70,7 @@ RTrie *put(RTrie *rt, unsigned long int hash, void *data, Bool heapBool) {
     else {
         // TODO: Define what to do if the value was already present
         // printf("setting eos for %p\n", data);
+        // printf("origValue: %s newValue: %s\n", (char *)rt->value, (char *)data);
         rt->EOS = 1;
         rt->value = data;
         rt->valueIsHeapd = heapBool;
@@ -57,7 +79,7 @@ RTrie *put(RTrie *rt, unsigned long int hash, void *data, Bool heapBool) {
     return rt;
 }
 
-void *access(RTrie *rt, unsigned long int hash, Bool isGetOp) {
+void *__rAccess(RTrie *rt, unsigned long int hash, Bool isGetOp) {
     if (rt == NULL)
         return NULL;
     else {
@@ -68,7 +90,7 @@ void *access(RTrie *rt, unsigned long int hash, Bool isGetOp) {
             return NULL;
         else {
             if (hash || residue)
-                return access(*(rt->keys + residue), hash, isGetOp);
+                return __rAccess(*(rt->keys + residue), hash, isGetOp);
             else {
                 // printf("EOS: %d data: %p\n", rt->EOS, rt->value);
                 if (rt->EOS) {
@@ -89,11 +111,11 @@ void *access(RTrie *rt, unsigned long int hash, Bool isGetOp) {
 }
 
 void *get(RTrie *rt, unsigned long int hash) {
-    return access(rt, hash, True);
+    return __rAccess(rt, hash, True);
 }
 
 void *pop(RTrie *rt, unsigned long int hash) {
-    return access(rt, hash, False);
+    return __rAccess(rt, hash, False);
 }
 
 RTrie *destroyRTrie(RTrie *rt) {
@@ -126,18 +148,9 @@ RTrie *destroyRTrie(RTrie *rt) {
     return rt;
 }
 
+
+#ifdef TEST_RAD_TRIE
 int main() {
-    RTrie *t = NULL;
-    char *duped = strdup("Aloha ola and bonjour\0");
-    
-    t = put(t, 20, (void *)duped, 1);
-    void *gotten = get(t, 20);
-    assert(gotten != NULL);
-
-    void *popd = pop(t, 20);
-    gotten = get(t, 20);
-    assert(gotten == NULL);
-
-    t = destroyRTrie(t);
     return 0;
 }
+#endif
