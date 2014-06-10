@@ -24,9 +24,8 @@ RTrie *fileToRTrie(const char *filePath) {
     RTrie *rt = NULL;
 
     int fd = open(filePath, 0, O_RDONLY);
-    if (fd < 0) {
+    if (fd < 0)
         raiseError(strerror(errno));
-    }
     else {
         struct stat st;
         if (fstat(fd, &st) != 0) {
@@ -42,9 +41,8 @@ RTrie *fileToRTrie(const char *filePath) {
         #endif
 
             char *buf = mmap(NULL, mapLength, PROT_READ, MAP_SHARED, fd, 0);
-            if (buf == MAP_FAILED) {
+            if (buf == MAP_FAILED)
                 raiseError(strerror(errno));
-            }
             else {
                 register int i=0, j;
                 char c;
@@ -79,9 +77,8 @@ RTrie *fileToRTrie(const char *filePath) {
                 }
 
                 // Now for the clean-up
-                if (munmap(buf, mapLength)) {
+                if (munmap(buf, mapLength))
                     raiseWarning(strerror(errno));
-                }
             }
         }
 
@@ -122,8 +119,7 @@ LinearizedTrie *destroyLinearizedTrie(LinearizedTrie *lt) {
 }
 
 Element *matches(
-  const char *query, RTrie *dict, 
-  const unsigned int ownRank, const double percentMatch
+  const char *query, RTrie *dict, const unsigned int ownRank, const double percentMatch
 ) {
     Element *matchL = NULL;
     if (query != NULL && dict != NULL) {
@@ -135,10 +131,8 @@ Element *matches(
         while (trav != NULL) {
             if (trav->value != NULL) {
                 int rank = getRank(query, (char *)trav->value);
-                if (rank >= threshHold) {
-                    matchL =\
-                        addToHeadWithRank(matchL, trav->value, (double)rank/ownRank);
-                }
+                if (rank >= threshHold)
+                    matchL = addToHeadWithRank(matchL, trav->value, (double)rank/ownRank);
             }
 
             trav = trav->next;
@@ -151,9 +145,9 @@ Element *matches(
 }
 
 Element *getCloseMatches(const char *query, RTrie *dict, const double percentMatch) {
-    if (query == NULL || dict == NULL) {
+    if (query == NULL || dict == NULL)
         return NULL;
-    } else {
+    else {
         // First check if the query exists in the dict
         void *check = get(dict, pjwCharHash(query));
 
@@ -163,10 +157,8 @@ Element *getCloseMatches(const char *query, RTrie *dict, const double percentMat
             matchList = addToHead(matchList, check);
             return matchList;
         }
-        else {
-            int ownRank = getRank(query, query);
-            return matches(query, dict, ownRank, percentMatch);
-        }
+        else 
+            return matches(query, dict, getRank(query, query), percentMatch);
     }
 }
 
@@ -181,10 +173,16 @@ void printLinearizedTrie(LinearizedTrie *lt) {
 }
 
 #ifdef TEST_LOAD_WORDS
-int main() {
-    RTrie *rt = fileToRTrie("../../resources/enable1.txt");
+int main(int argc, char *argv[]) {
+    char *target = __FILE__;
+    printf("Argc: %d\n", argc);
+    if (argc >= 2)
+        target = argv[1];
+    RTrie *rt = fileToRTrie(target);
     printf("\033[47mDone loading words\033[00m\n");
 
+    ullong_t count = itemCount(rt);
+    printf("itemCount: %lld\n", count);
     LinearizedTrie *linear = NULL;
     linear = linearizeRTrie(rt, linear);
     // printLinearizedTrie(linear);

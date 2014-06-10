@@ -148,6 +148,25 @@ RTrie *destroyRTrie(RTrie *rt) {
     return rt;
 }
 
+ullong_t itemCount(RTrie *r) {
+    if (r == NULL)
+        return 0;
+    else {
+        ullong_t count = 1;
+        if (r->keys != NULL) {
+            register unsigned int i=0, bitPos;
+            while (i < BASE) {
+                bitPos = 1<<i;
+                if (r->availBlock & bitPos)
+                    count += itemCount(*(r->keys + i));
+
+                ++i;
+            }
+        }
+
+        return count;
+    }
+}
 
 #ifdef TEST_RAD_TRIE
 int main() {

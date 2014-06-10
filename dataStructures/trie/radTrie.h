@@ -11,12 +11,18 @@
 
 #ifndef _RAD_TRIE_H
 #define _RAD_TRIE_H
-    #ifndef _BOOL_D
-    #define _BOOL_D
+
+#ifndef _BOOL_D
+#define _BOOL_D
     typedef enum {
         False=0, True=1
     } Bool;
-    #endif // _BOOL_D
+#endif // _BOOL_D
+
+#ifndef _U_LONG_LONG_T
+#define _U_LONG_LONG_T
+    typedef unsigned long long ullong_t;
+#endif // _U_LONG_LONG_T
 
     static unsigned int BASE = 10;
     typedef struct RTrie_ {
@@ -38,4 +44,5 @@
     RTrie *put(RTrie *rt, unsigned long int hash, void *value, Bool heapBool);
 
     unsigned int pjwCharHash(const char *srcW);
-#endif
+    unsigned long long itemCount(RTrie *r);
+#endif // _RAD_TRIE_H

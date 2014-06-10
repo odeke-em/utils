@@ -20,11 +20,14 @@
     raiseWarning(#errCode);\
     exit(-1);\
   }
- 
+
+#ifdef assert 
+#undef assert
   #define assert(validExpression){\
     if (! validExpression)\
       raiseError(validExpression);\
   }
+#endif
 
   #define raiseError(args) {\
     fprintf(stderr, "Traceback most recent call at line: %d ", __LINE__);\
