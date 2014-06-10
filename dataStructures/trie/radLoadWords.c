@@ -24,8 +24,9 @@ RTrie *fileToRTrie(const char *filePath) {
     RTrie *rt = NULL;
 
     int fd = open(filePath, 0, O_RDONLY);
-    if (fd < 0)
+    if (fd < 0) {
         raiseError(strerror(errno));
+    }
     else {
         struct stat st;
         if (fstat(fd, &st) != 0) {
@@ -41,8 +42,9 @@ RTrie *fileToRTrie(const char *filePath) {
         #endif
 
             char *buf = mmap(NULL, mapLength, PROT_READ, MAP_SHARED, fd, 0);
-            if (buf == MAP_FAILED)
+            if (buf == MAP_FAILED) {
                 raiseError(strerror(errno));
+            }
             else {
                 register int i=0, j;
                 char c;
