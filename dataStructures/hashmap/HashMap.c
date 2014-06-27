@@ -1,6 +1,7 @@
 // Author: Emmanuel Odeke <odeke@ualberta.ca>
 
 #include <stdlib.h>
+#include <pthread.h>
 
 #include "RTrie.h"
 #include "HashMap.h"
@@ -20,8 +21,12 @@ inline HashMap *newHashMap(const UInt base) {
 HashMap *destroyHashMap(HashMap *hm) {
     if (hm != NULL) {
         hm->map = destroyRTrie(hm->map, hm->base);
+        pthread_mutex_t destMutex = PTHREAD_MUTEX_INITIALIZER;
+
+        pthread_mutex_lock(&destMutex);
         free(hm);
         hm = NULL;
+        pthread_mutex_unlock(&destMutex);
     }
 
     return hm;

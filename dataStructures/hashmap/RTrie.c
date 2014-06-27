@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
+
 #include "RTrie.h"
 #include "errors.h"
 
@@ -51,9 +53,11 @@ void *__accessRTrie(
     void *result = NULL;
 
     if (rt->children != NULL) {
+        pthread_mutex_t accessMutex = PTHREAD_MUTEX_INITIALIZER;
         UInt residue;
         RTrie *target = rt;
 
+        pthread_mutex_lock(&accessMutex);
         do {
             residue = h % b;
             if (*(target->children + residue) == NULL) {
@@ -105,6 +109,8 @@ void *__accessRTrie(
                 }
             }
         }
+
+        pthread_mutex_unlock(&accessMutex);
     }
 
     return result;
@@ -113,9 +119,6 @@ void *__accessRTrie(
 RTrie *destroyRTrie(RTrie *rt, const UInt b) {
     if (rt != NULL) {
         printf("hPtr: %p\n", rt);
-
-        if (rt->isHeapd)
-            free(rt->data); 
 
         if (rt->children != NULL) {
             RTrie **headPtr = rt->children, **end=headPtr + b;
@@ -129,8 +132,15 @@ RTrie *destroyRTrie(RTrie *rt, const UInt b) {
             free(rt->children);
         }
 
+
+        pthread_mutex_t freeMutex = PTHREAD_MUTEX_INITIALIZER;
+        pthread_mutex_lock(&freeMutex);
+        if (rt->isHeapd)
+            free(rt->data); 
+
         free(rt);
         rt = NULL;
+        pthread_mutex_unlock(&freeMutex);
     }
 
     return rt;
