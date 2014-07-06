@@ -1,6 +1,7 @@
 // Author: Emmanuel Odeke <odeke@ualberta.ca>
 #ifndef _LIST_H
 #define _LIST_H
+  #define DEBUG
   #include <stdarg.h>
   typedef enum {
     Less=-1, Equal=0, Greater=1
@@ -54,7 +55,7 @@
   // obtained by a call to malloc or an object that exists on the heap
   List *prepend(List *l, void *data);
 
-  Node *find(List *l, void *query, Comparator comp);
+  Node *find(List *l, const void *query, Comparator comp);
   List *removeElem(List *l, void *query, Comparator comp);
 
   inline int isEmpty(const List *l);

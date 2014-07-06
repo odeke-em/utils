@@ -327,11 +327,11 @@ List *multiMerge(unsigned int count, ...) {
   return merged;
 }
 
-Node *find(List *l, void *query, Comparator matchFunc) {
+Node *find(List *l, const void *query, Comparator matchFunc) {
   Node *result = NULL;
   if (l != NULL && matchFunc != NULL) {
     Node *it = l->head, *end = l->tail;
-    while (it != NULL) {
+    while (it != end && it != NULL) {
       if (matchFunc(it->data, query) == Equal) {
         result = it;
         break;

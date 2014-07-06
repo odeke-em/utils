@@ -7,6 +7,8 @@
 #define PRODUCER_CAPACITY 30
 #define DEFAULT_PRODUCER_CAPACITY 10
 
+#define DEBUG
+
 Producer *allocProducer() {
   return (Producer *)malloc(sizeof(Producer));
 }
@@ -53,9 +55,7 @@ int insertJob(Producer *prod, void *job) {
   if (job == NULL)  {
     raiseWarning("NULL job trying to be inserted");
   } else {
-    if (
-      prod != NULL && getListSize(prod->consumerList) < prod->maxCapacity
-    ) {
+    if (prod != NULL && getListSize(prod->consumerList) < prod->maxCapacity) {
       prod->consumerList = prepend(prod->consumerList, job);
       insertResult = 0;
     } else {
@@ -78,17 +78,18 @@ int main() {
     insertionPhase: {
       int status = insertJob(prod, jobImitation);
       if (status > 0) {
-	prod->consumerList = purgeLRU(prod->consumerList);
-	goto insertionPhase;
+		prod->consumerList = purgeLRU(prod->consumerList);
+		goto insertionPhase;
       } else if (! status){
       #ifdef DEBUG
-	printf("Successful insertion: %d\n", i);
+		printf("Successful insertion: %d\n", i);
       #endif
       }
     }
   }
 
   for (i=300; i < 500; ++i) {
+    printf("Searching for : %d\n", i);
     void *data = lookUpEntry(prod->consumerList, &i, intPtrComp);
     printf("Key: %d Data: %p\n", i, data);
   }
