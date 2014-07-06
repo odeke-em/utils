@@ -9,6 +9,7 @@
         unsigned int base, count;
     } HashMap;
 
+	inline HashMap *newHashMap(const UInt base);
     inline HashMap *allocHashMap(const UInt);
     HashMap *destroyHashMap(HashMap *);
 
