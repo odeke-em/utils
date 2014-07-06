@@ -78,7 +78,3 @@ DMap *destroyDMap(DMap *dm) {
 
 	return dm;
 }
-
-int main() {
-	return 0;
-}
