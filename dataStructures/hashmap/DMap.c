@@ -3,6 +3,7 @@
 // yet at the same time in constant time allows: Get, Push, Pop and Put operations
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 
 #include "DMap.h"
@@ -22,6 +23,7 @@ DMap *newDMap(void) {
 
 	dm->hmap = newHashMap(HASH_RADIX);
 	dm->dnode = NULL;
+	dm->size = 0;
 
 	return dm;
 }
@@ -38,6 +40,7 @@ DMap *pushDMap(DMap *dm, void *data, const ULInt h, const UInt allocStyle) {
 	if (retr == NULL) {
 		dm->dnode = prependDNode(dm->dnode, data);
 		dm->hmap = put(dm->hmap, h, dm->dnode, 0); // Enter it as isStackd
+		++dm->size;
 	}
 
 	return dm;
@@ -47,6 +50,10 @@ DMap *popDMap(DMap *dm, void *data, const ULInt h) {
 	if (dm != NULL && dm->hmap != NULL) {
 		DNode *popd = NULL;
 		dm->hmap = pop(dm->hmap, h, NULL, (const void **)&popd);
+
+		if (popd != NULL)
+			--dm->size;
+
 		popd = destroyLoneDNode(popd);
 	}
 
@@ -59,4 +66,19 @@ DNode *getDMap(DMap *dm, const ULInt h) {
 		retr = (DNode *)get(dm->hmap, h);
 
 	return retr;
+}
+
+DMap *destroyDMap(DMap *dm) {
+	if (dm != NULL) {
+		dm->dnode = destroyDNode(dm->dnode);
+		dm->hmap = destroyHashMap(dm->hmap);
+		free(dm);
+		memset(dm, 0, sizeof(*dm));
+	}
+
+	return dm;
+}
+
+int main() {
+	return 0;
 }
