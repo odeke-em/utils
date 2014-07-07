@@ -1,6 +1,7 @@
 // Author: Emmanuel Odeke <odeke@ualberta.ca>
 #ifndef _DMAP_H
 #define _DMAP_H
+
 	#include "DNode.h"
 	#include "HashMap.h"
 
@@ -17,5 +18,8 @@
     DNode *getDMap(DMap *dm, const ULInt h);
     DMap *popDMap(DMap *dm, const ULInt h);
     DMap *destroyDMap(DMap *dm);
+
+    ULInt pjwCharHash(const char *s);
+    DMap *fileToDM(const char *path);
 
 #endif // _DMAP_H

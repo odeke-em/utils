@@ -1,32 +1,20 @@
+// Author: Emmanuel Odeke <odeke@ualberta.ca>
+
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "DMap.h"
 #include "errors.h"
 
-ULInt pjwCharHash(const char *s) {
-    ULInt h = 0;
-    if (s != NULL) {
-        ULInt g;
-        while (*s != '\0') {
-            h = (h << 4) + *s;
-            g = h & 0xf0000000;
-            if (g) {
-                h ^= (g >> 24);
-                h ^= g;
-            }
-            ++s;
-        }
-    }
 
-    return h;
-}
+int main(int argc, char **argv) {
+    char *target = __FILE__;
+    if (argc >= 2)
+        target = argv[1];
 
-int main() {
-    DMap *dm = newDMap();
+    DMap *dm = fileToDM(target);
 
-    char *fDupd = strdup(__FILE__);
+    char *fDupd = strdup(__func__);
     ULInt h = pjwCharHash(fDupd);
     dm = pushDMap(dm, (void *)fDupd, h, 1);
 
