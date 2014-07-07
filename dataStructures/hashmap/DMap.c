@@ -38,7 +38,7 @@ DMap *pushDMap(DMap *dm, void *data, const ULInt h, const UInt allocStyle) {
 	void *retr = get(dm->hmap, h);
 
 	if (retr == NULL) {
-		dm->dnode = prependDNode(dm->dnode, data);
+        dm->dnode = prependDNode(dm->dnode, data);
 		dm->hmap = put(dm->hmap, h, dm->dnode, 0); // Enter it as isStackd
 		++dm->size;
 	}
@@ -46,7 +46,7 @@ DMap *pushDMap(DMap *dm, void *data, const ULInt h, const UInt allocStyle) {
 	return dm;
 }
 
-DMap *popDMap(DMap *dm, void *data, const ULInt h) {
+DMap *popDMap(DMap *dm, const ULInt h) {
 	if (dm != NULL && dm->hmap != NULL) {
 		DNode *popd = NULL;
 		dm->hmap = pop(dm->hmap, h, NULL, (const void **)&popd);
@@ -54,7 +54,9 @@ DMap *popDMap(DMap *dm, void *data, const ULInt h) {
 		if (popd != NULL)
 			--dm->size;
 
+        DNode **ppd = &popd;
 		popd = destroyLoneDNode(popd);
+        *ppd = NULL;
 	}
 
 	return dm;

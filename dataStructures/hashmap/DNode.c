@@ -15,14 +15,17 @@ DNode *newDNode(void *data) {
     assert((dn != NULL));
 
     dn->data = data;
+    dn->refFreeTag = Clean; // Virgin/UnFreed
+    dn->dataDestroyer = NULL;
     dn->prev = NULL;
     dn->next = NULL;
 
     return dn;
 }
 
-DNode *prependDNode(DNode *cur, void *data) {
+DNode *prependDNodeDestroyer(DNode *cur, void *data, void (*freer)(void *)) {
     DNode *dn = newDNode(data);
+    dn->dataDestroyer = freer;
     if (cur != NULL) {
         dn->prev = cur->prev;
     }
@@ -30,6 +33,10 @@ DNode *prependDNode(DNode *cur, void *data) {
     dn->next = cur;
     cur = dn;
     return cur;
+}
+
+DNode *prependDNode(DNode *cur, void *data) {
+    return prependDNodeDestroyer(cur, data, NULL);
 }
 
 DNode *appendDNode(DNode *cur, void *data) {
@@ -49,7 +56,11 @@ DNode *appendDNode(DNode *cur, void *data) {
 DNode *destroyLoneDNode(DNode *dn) {
     if (dn != NULL) {
         if (dn->data != NULL) {
-            free(dn->data);
+            if (dn->dataDestroyer != NULL)
+                dn->dataDestroyer(dn->data);
+            else
+                free(dn->data);
+
             dn->data = NULL;
         }
 
@@ -59,6 +70,7 @@ DNode *destroyLoneDNode(DNode *dn) {
         if (dn->next != NULL)
             dn->next->prev = dn->prev;
 
+        dn->refFreeTag = Dirty;
         free(dn);
         dn = NULL;
     }
@@ -72,13 +84,20 @@ DNode *destroyDNode(DNode *dn) {
         DNode *tmp;
         while (dn != NULL) {
             tmp = dn->next;
-            if (dn->data != NULL) {
-                printf("dn->data: %s\n", (char *)dn->data);
-                free(dn->data);
-                dn->data = NULL;
+            if (dn->refFreeTag == Clean) {
+                if (dn->data != NULL) {
+                    if (dn->dataDestroyer != NULL)
+                        dn->dataDestroyer(dn->data);
+                    else
+                        free(dn->data);
+
+                    dn->data = NULL;
+                }
+
+                free(dn);                
+                dn->refFreeTag = Dirty;
             }
 
-            free(dn);                
             dn = tmp;
         }
 

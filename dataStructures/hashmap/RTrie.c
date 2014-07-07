@@ -118,8 +118,6 @@ void *__accessRTrie(
 
 RTrie *destroyRTrie(RTrie *rt, const UInt b) {
     if (rt != NULL) {
-        printf("hPtr: %p\n", rt);
-
         if (rt->children != NULL) {
             RTrie **headPtr = rt->children, **end=headPtr + b;
             while (headPtr < end) {

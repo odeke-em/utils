@@ -9,4 +9,13 @@
 		DNode *dnode;
 		HashMap *hmap;
 	} DMap;
+
+    DMap *newDMap(void);
+    inline DMap *allocDMap(void);
+
+    DMap *pushDMap(DMap *dm, void *data, const ULInt h, const UInt allocStyle);
+    DNode *getDMap(DMap *dm, const ULInt h);
+    DMap *popDMap(DMap *dm, const ULInt h);
+    DMap *destroyDMap(DMap *dm);
+
 #endif // _DMAP_H
