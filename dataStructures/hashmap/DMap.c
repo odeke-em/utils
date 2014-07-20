@@ -126,7 +126,6 @@ DMap *fileToDM(const char *path) {
 
             char *fBuf = mmap(NULL, mapLen, PROT_READ, MAP_SHARED, fd, 0);
             close(fd);
-            printf("fBuf: %s\n", fBuf);
 
             if (fBuf == MAP_FAILED) // TODO: Descriptive error handling
                 goto doneLoad;
