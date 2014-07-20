@@ -136,7 +136,7 @@ DMap *fileToDM(const char *path) {
                     sLen = BUF_LEN;
                     char *s = (char *)malloc(sizeof(char) * sLen);
                     j = 0;
-                    while (isalnum(fBuf[i])) {
+                    while (! (isspace(fBuf[i]) && fBuf[i] != EOF)) {
                         if (j >= sLen) {
                             sLen += BUF_LEN;
                             s = (char *)realloc(s, sizeof(char) * sLen);
