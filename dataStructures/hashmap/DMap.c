@@ -126,24 +126,25 @@ DMap *fileToDM(const char *path) {
 
             char *fBuf = mmap(NULL, mapLen, PROT_READ, MAP_SHARED, fd, 0);
             close(fd);
+            printf("fBuf: %s\n", fBuf);
 
             if (fBuf == MAP_FAILED) // TODO: Descriptive error handling
                 goto doneLoad;
             else {
                 register ULInt i=0, j, sLen;
                 unsigned int BUF_LEN = 10;
-                while (i < sb.st_size) { 
+                while (i < sb.st_size) {
                     sLen = BUF_LEN;
-                    char *s = (char *)malloc(sizeof(char) * sLen);
+                    char c, *s = (char *)malloc(sizeof(char) * sLen);
                     j = 0;
-                    while (! (isspace(fBuf[i]) && fBuf[i] != EOF)) {
+                    while (i < sb.st_size && (c = fBuf[i++]) != EOF && ! isspace(c)) {
                         if (j >= sLen) {
                             sLen += BUF_LEN;
                             s = (char *)realloc(s, sizeof(char) * sLen);
                             assert((s != NULL));
                         }
 
-                        s[j++] = fBuf[i++];
+                        s[j++] = c;
                     }
 
                     if (! j)
