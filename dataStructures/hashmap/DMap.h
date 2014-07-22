@@ -13,11 +13,13 @@
 
     DMap *newDMap(void);
     inline DMap *allocDMap(void);
-
-    DMap *pushDMap(DMap *dm, void *data, const ULInt h, const UInt allocStyle);
-    DNode *getDMap(DMap *dm, const ULInt h);
-    DMap *popDMap(DMap *dm, const ULInt h);
     DMap *destroyDMap(DMap *dm);
+
+    void *getDMap(DMap *dm, const ULInt h);
+    void *putDMap(DMap *dm, void *data, const ULInt h, const UInt allocStyle);
+
+    DMap *popDMap(DMap *dm, const ULInt h, const void **dSav);
+    DMap *pushDMap(DMap *dm, void *data, const ULInt h, const UInt allocStyle);
 
     ULInt pjwCharHash(const char *s);
     DMap *fileToDM(const char *path);

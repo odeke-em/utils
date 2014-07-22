@@ -45,44 +45,72 @@ DMap *pushDMap(DMap *dm, void *data, const ULInt h, const UInt allocStyle) {
 	void *retr = get(dm->hmap, h);
 
 	if (retr == NULL) {
-        dm->dnode = prependDNode(dm->dnode, data);
-		dm->hmap = put(dm->hmap, h, dm->dnode, 0); // Enter it as isStackd
+		dm->dnode = prependDNode(dm->dnode, data);
+		dm->hmap = put(dm->hmap, h, (void *)&(dm->dnode), 0); // Enter it as isStackd
 		++dm->size;
 	}
 
 	return dm;
 }
 
-DMap *popDMap(DMap *dm, const ULInt h) {
+void *putDMap(DMap *dm, void *data, const ULInt h, const UInt allocStyle) {
+	// Evacuates the previously stored content, and returns it
+	if (dm == NULL) // Not yet allowing PUT into an empty map
+		return NULL;
+	void *evac = NULL;
+	dm = popDMap(dm, h, (const void **)&evac);
+	dm = pushDMap(dm, data, h, allocStyle);
+
+	return evac;
+}
+
+DMap *popDMap(DMap *dm, const ULInt h, const void **dSav) {
 	if (dm != NULL && dm->hmap != NULL) {
-		DNode *popd = NULL;
+		void *popd = NULL;
 		dm->hmap = pop(dm->hmap, h, NULL, (const void **)&popd);
 
-		if (popd != NULL)
-			--dm->size;
+		DNode **nm = (DNode **)popd;
+		if (nm != NULL  && *nm != NULL) {
+			DNode *sav = NULL;
+			if (dm->dnode == *nm) {
+			    if (dm->dnode->prev != NULL)
+				sav = (*nm)->prev;
+			    else
+				sav = (*nm)->next;
+			}
 
-        DNode **ppd = &popd;
-		popd = destroyLoneDNode(popd);
-        *ppd = NULL;
+			*dSav = (*nm)->data;
+			(*nm)->data = NULL;
+			*nm = destroyLoneDNode(*nm);
+
+			if (sav != NULL)
+			    dm->dnode = sav;
+
+			--dm->size;
+		}
 	}
 
 	return dm;
 }
 
-DNode *getDMap(DMap *dm, const ULInt h) {
-	DNode *retr = NULL;
-	if (dm != NULL && dm->hmap != NULL)
-		retr = (DNode *)get(dm->hmap, h);
-
-	return retr;
+void *getDMap(DMap *dm, const ULInt h) {
+	if (dm == NULL || dm->hmap == NULL)
+		return NULL;
+	else {
+		DNode **retr = (DNode **)get(dm->hmap, h);
+		if (retr != NULL && *retr != NULL)
+			return (*retr)->data;
+		return NULL;
+	}
 }
 
 DMap *destroyDMap(DMap *dm) {
 	if (dm != NULL) {
+		printf("dm->dnode: %p\n", dm->dnode);
 		dm->dnode = destroyDNode(dm->dnode);
 		dm->hmap = destroyHashMap(dm->hmap);
 		free(dm);
-		memset(dm, 0, sizeof(*dm));
+		dm = NULL;
 	}
 
 	return dm;
@@ -161,8 +189,6 @@ DMap *fileToDM(const char *path) {
 
                         pthread_mutex_unlock(&dmLock);
                     }
-
-                    ++i;
                 }
 
                 if (munmap(fBuf, mapLen)) {
