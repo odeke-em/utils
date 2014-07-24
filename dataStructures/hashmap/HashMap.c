@@ -6,12 +6,13 @@
 #include "RTrie.h"
 #include "HashMap.h"
 
-inline HashMap *allocHashMap(const UInt base) {
+inline HashMap *allocHashMap(void) {
     return (HashMap *)malloc(sizeof(HashMap));
 }
 
 inline HashMap *newHashMap(const UInt base) {
-    HashMap *hm = allocHashMap(base);
+    HashMap *hm = allocHashMap();
+    assert((hm != NULL));
     hm->map = NULL;
     hm->base = base;
 
