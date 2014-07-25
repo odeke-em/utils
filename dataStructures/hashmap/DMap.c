@@ -56,7 +56,7 @@ DMap *pushDMap(DMap *dm, void *data, const ULInt h, const UInt allocStyle) {
 
 	if (retr == NULL) {
 		dm->dnode = prependDNode(dm->dnode, data);
-		dm->hmap = put(dm->hmap, h, (void *)&(dm->dnode), 0); // Enter it as isStackd
+		dm->hmap = put(dm->hmap, h, (void *)&(dm->dnode), allocStyle); // Enter it as isStackd
 		++dm->size;
 	}
 
@@ -167,8 +167,12 @@ DMap *fileToDM(const char *path) {
             if (fBuf == MAP_FAILED) // TODO: Descriptive error handling
                 goto doneLoad;
             else {
-                register ULInt i=0, j, sLen;
+                register long int i=0;
+                register ULInt j;
+                ULInt sLen;
+
                 unsigned int BUF_LEN = 10;
+
                 while (i < sb.st_size) {
                     sLen = BUF_LEN;
                     char c, *s = (char *)malloc(sizeof(char) * sLen);

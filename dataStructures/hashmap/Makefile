@@ -1,11 +1,12 @@
 CC := gcc
+FLAGS := -Wall -Wextra
 LIBS := -pthread
 
 %.o:	%.c
-	$(CC) $< -c -o $@ $(LIBS)
+	$(CC) $(FLAGS) $< -c -o $@ $(LIBS)
 
 %:	%.c %.o
-	$(CC) $< -o $@
+	$(CC) $(FLAGS) $< -o $@
 
 Test:	DMap.o HashMap.o DNode.o RTrie.o
 HashMap:	HashMap.c RTrie.o

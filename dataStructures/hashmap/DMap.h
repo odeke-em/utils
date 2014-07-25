@@ -25,5 +25,4 @@
     DMap *fileToDM(const char *path);
 
     ULInt getSize(DMap *dm);
-
 #endif // _DMAP_H
