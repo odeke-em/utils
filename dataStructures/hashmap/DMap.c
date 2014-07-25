@@ -56,11 +56,24 @@ DMap *pushDMap(DMap *dm, void *data, const ULInt h, const UInt allocStyle) {
 
 	if (retr == NULL) {
 		dm->dnode = prependDNode(dm->dnode, data);
-		dm->hmap = put(dm->hmap, h, (void *)&(dm->dnode), allocStyle); // Enter it as isStackd
+		dm->hmap = put(dm->hmap, h, (void *)&(dm->dnode), 0); // Enter it as isStackd
 		++dm->size;
 	}
 
 	return dm;
+}
+
+int pushDMapOp(DMap *dm, void *data, const ULInt h) {
+    if (dm == NULL) { // The reason here is that we could suffer from a memory leak
+                      // since the newly allocated dm no longer points to the old
+                      // location yet this pointer never gets returned outside of this function
+        return -1;
+    }
+
+    ULInt pSz = getSize(dm);
+    dm = pushDMap(dm, data, h, 0); // AllocStyle can be any value since after all the ref
+                                   // to the dnode is saved in the hashmap
+    return pSz < getSize(dm) ? 0: 1;
 }
 
 void *putDMap(DMap *dm, void *data, const ULInt h, const UInt allocStyle) {

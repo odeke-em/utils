@@ -20,6 +20,7 @@
 
     DMap *popDMap(DMap *dm, const ULInt h, const void **dSav);
     DMap *pushDMap(DMap *dm, void *data, const ULInt h, const UInt allocStyle);
+    int pushDMapOp(DMap *dm, void *data, const ULInt h);
 
     ULInt pjwCharHash(const char *s);
     DMap *fileToDM(const char *path);

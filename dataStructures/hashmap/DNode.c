@@ -87,6 +87,9 @@ DNode *destroyDNode(DNode *dn) {
             tmp = dn->next;
             if (dn->refFreeTag == Clean) {
                 if (dn->data != NULL) {
+                #ifdef DEBUG
+                    printf("dn->data: %s\n", (char *)dn->data);
+                #endif
                     if (dn->dataDestroyer != NULL)
                         dn->dataDestroyer(dn->data);
                     else

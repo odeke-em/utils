@@ -8,6 +8,7 @@ LIBS := -pthread
 %:	%.c %.o
 	$(CC) $(FLAGS) $< -o $@
 
+useCase:	DMap.o HashMap.o DNode.o RTrie.o
 Test:	DMap.o HashMap.o DNode.o RTrie.o
 HashMap:	HashMap.c RTrie.o
 clean:	
