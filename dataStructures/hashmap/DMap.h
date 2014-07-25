@@ -2,14 +2,14 @@
 #ifndef _DMAP_H
 #define _DMAP_H
 
-	#include "DNode.h"
-	#include "HashMap.h"
+    #include "DNode.h"
+    #include "HashMap.h"
 
-	typedef struct {
-		ULInt size;
-		DNode *dnode;
-		HashMap *hmap;
-	} DMap;
+    typedef struct {
+	ULInt size;
+	DNode *dnode;
+	HashMap *hmap;
+    } DMap;
 
     DMap *newDMap(void);
     inline DMap *allocDMap(void);
@@ -23,5 +23,7 @@
 
     ULInt pjwCharHash(const char *s);
     DMap *fileToDM(const char *path);
+
+    ULInt getSize(DMap *dm);
 
 #endif // _DMAP_H

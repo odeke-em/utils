@@ -19,9 +19,19 @@
 #include "errors.h"
 
 static const unsigned int HASH_RADIX = 10;
+static pthread_mutex_t dmLock = PTHREAD_MUTEX_INITIALIZER;
 
 inline DMap *allocDMap(void) {
 	return (DMap *)malloc(sizeof(DMap));
+}
+
+ULInt getSize(DMap *dm) {
+        pthread_mutex_lock(&dmLock);
+        ULInt res = 0;
+        if (dm != NULL)
+            res = dm->size;
+        pthread_mutex_unlock(&dmLock);
+        return res;
 }
 
 DMap *newDMap(void) {
@@ -138,7 +148,6 @@ DMap *fileToDM(const char *path) {
     printf("path: %s\n", path);
     DMap *dm = NULL;
     if (path != NULL) {
-        pthread_mutex_t dmLock = PTHREAD_MUTEX_INITIALIZER;
 
         int fd = open(path, O_RDONLY);
         if (fd < 0)
