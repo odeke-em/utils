@@ -8,6 +8,8 @@
 #include "errors.h"
 
 int main(int argc, char *argv[]) {
+    // Goal here is given an arbitrary stream of integers,
+    // take out duplicates however, maintain the set order
     DMap *dm = NULL;
 
     FILE *ifp = stdin;
