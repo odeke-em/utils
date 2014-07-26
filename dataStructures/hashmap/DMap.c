@@ -18,6 +18,8 @@
 #include "HashMap.h"
 #include "errors.h"
 
+// #define DEBUG
+
 static const unsigned int HASH_RADIX = 10;
 static pthread_mutex_t dmLock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -212,6 +214,11 @@ DMap *fileToDM(const char *path) {
 
                         if (dm->size == sLen) // No insertion was made
                             free(s);
+                        else {
+                        #ifdef DEBUG
+                            printf("s: %s\n", s);
+                        #endif // DEBUG
+                        }
 
                         pthread_mutex_unlock(&dmLock);
                     }
