@@ -55,7 +55,6 @@ DMap *pushDMap(DMap *dm, void *data, const ULInt h, const UInt allocStyle) {
 		dm->hmap = newHashMap(HASH_RADIX);
 
 	void *retr = get(dm->hmap, h);
-
 	if (retr == NULL) {
 		dm->dnode = prependDNode(dm->dnode, data);
 		dm->hmap = put(dm->hmap, h, (void *)&(dm->dnode), 0); // Enter it as isStackd
@@ -74,8 +73,9 @@ int pushDMapOp(DMap *dm, void *data, const ULInt h) {
 
     ULInt pSz = getSize(dm);
     dm = pushDMap(dm, data, h, 0); // AllocStyle can be any value since after all the ref
+      
                                    // to the dnode is saved in the hashmap
-    return pSz < getSize(dm) ? 0: 1;
+    return pSz < getSize(dm) ? 1: 0;
 }
 
 void *putDMap(DMap *dm, void *data, const ULInt h, const UInt allocStyle) {
