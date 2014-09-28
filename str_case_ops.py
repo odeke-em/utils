@@ -1,0 +1,207 @@
+#!/usr/bin/env python
+
+# Author: Emmanuel Odeke <odeke@ualberta.ca>
+# Module to enable string operations eg
+#     case modifications ie lower(), upper()
+#  on a collection of items.
+
+EXCLUDE_NONE = 0
+EXCLUDE_LEFT = 1
+EXCLUDE_RIGHT = 2
+
+is_callable = lambda x: x and hasattr(x, '__call__')
+
+def is_callable_attr(obj, attr):
+    value = getattr(obj, attr, None)
+    if not value:
+        return False
+
+    return is_callable(value)
+
+def _invoke_case_mod(case_func_name, item, *args, **kwargs):
+    if not is_callable_attr(item, case_func_name):
+       return item
+
+    return getattr(item, case_func_name)(*args, **kwargs)
+
+def lower(*args, **kwargs):
+    return _invoke_case_mod('lower', *args, **kwargs)
+
+def capitalize(*args, **kwargs):
+    return _invoke_case_mod('capitalize', *args, **kwargs)
+
+def upper(*args, **kwargs):
+    return _invoke_case_mod('upper', *args, **kwargs)
+
+def translate_skip_to_range(seq_len, offset=0, skip_const=EXCLUDE_NONE):
+    if skip_const == EXCLUDE_RIGHT:
+        return range(0 + offset, seq_len - 1), 1, range(seq_len - 1, seq_len), 0
+    elif skip_const == EXCLUDE_LEFT:
+        return range(offset, 1), 0, range(1 + offset, seq_len), 1
+    else:
+        return range(seq_len), 1, range(0), 1 
+
+def _caseify(func, iterator, splitter, joiner, skip_const=EXCLUDE_LEFT):
+    if not is_callable_attr(iterator, '__iter__'):
+        return iterator
+
+    tokens = []
+    
+    for it in iterator:
+        sub_items = []
+        split_items = splitter(it)
+        if not is_callable_attr(it, '__len__'):
+            tokens.append(split_items)
+            continue
+
+        split_len = len(split_items)
+
+        l_iter, l_needs, r_iter, r_needs =\
+                        translate_skip_to_range(split_len, skip_const=skip_const)
+
+        if l_needs:
+            for i in l_iter:
+                sub_items.append(func(split_items[i]))
+        else:
+            for i in l_iter:
+                sub_items.append(split_items[i])
+
+        if r_needs:
+            for j in r_iter:
+                sub_items.append(func(split_items[j]))
+        else:
+            for j in r_iter:
+                sub_items.append(split_items[j])
+
+        tokens.append(joiner(sub_items))
+
+    return tokens
+
+def lower_args(*args, **kwargs):
+    return _caseify(lower, *args, **kwargs)
+
+def upper_args(*args, **kwargs):
+    return _caseify(upper, *args, **kwargs)
+
+def capitalize_args(*args, **kwargs):
+    return _caseify(capitalize, *args, **kwargs)
+
+def main():
+    args = [
+        '--local_queue_workers',
+        '--phantomjs_binary=$PHANTOMJS_BINARY',
+        '--phantomjs_script=$CAPTURE_SCRIPT',
+        '--phantomJs_timeout=20',
+        '--release_server_prefix=http://localhost:5000/api',
+        '--queue_server_prefix=http://localhost:5000/api/work_queue',
+        '--queue_idle_poll_seconds=10',
+        '--queue_busy_poll_seconds=10',
+        '--pdiff_timeout=20',
+        '--reload_code',
+        '--inspectJS',
+        '--port=5000',
+        '--verbose',
+        '--ignore_auth'
+    ]
+
+    joiner = lambda seq: '='.join(seq)
+    splitter = lambda splittable: splittable.split('=') \
+                    if is_callable_attr(splittable, 'split') else splittable
+
+    expected_right_excluded = [
+        '--local_queue_workers',
+        '--phantomjs_binary=$PHANTOMJS_BINARY',
+        '--phantomjs_script=$CAPTURE_SCRIPT',
+        '--phantomjs_timeout=20',
+        '--release_server_prefix=http://localhost:5000/api',
+        '--queue_server_prefix=http://localhost:5000/api/work_queue',
+        '--queue_idle_poll_seconds=10',
+        '--queue_busy_poll_seconds=10',
+        '--pdiff_timeout=20',
+        '--reload_code',
+        '--inspectJS',
+        '--port=5000',
+        '--verbose',
+        '--ignore_auth'
+    ]
+    right_excluded = lower_args(args, splitter, joiner, EXCLUDE_RIGHT)
+
+    assert args == args, 'No mutations expected'
+    assert right_excluded == expected_right_excluded
+
+    expected_left_excluded_lower = [
+        '--local_queue_workers',
+        '--phantomjs_binary=$phantomjs_binary',
+        '--phantomjs_script=$capture_script',
+        '--phantomJs_timeout=20',
+        '--release_server_prefix=http://localhost:5000/api',
+        '--queue_server_prefix=http://localhost:5000/api/work_queue',
+        '--queue_idle_poll_seconds=10',
+        '--queue_busy_poll_seconds=10',
+        '--pdiff_timeout=20',
+        '--reload_code',
+        '--inspectJS',
+        '--port=5000',
+        '--verbose',
+        '--ignore_auth'
+    ]
+    left_excluded_lower = lower_args(args, splitter, joiner, EXCLUDE_LEFT)
+
+    assert args == args, 'No mutations expected'
+    assert left_excluded_lower == expected_left_excluded_lower
+
+    expected_none_excluded_upper = [
+        '--LOCAL_QUEUE_WORKERS',
+        '--PHANTOMJS_BINARY=$PHANTOMJS_BINARY',
+        '--PHANTOMJS_SCRIPT=$CAPTURE_SCRIPT',
+        '--PHANTOMJS_TIMEOUT=20',
+        '--RELEASE_SERVER_PREFIX=HTTP://LOCALHOST:5000/API',
+        '--QUEUE_SERVER_PREFIX=HTTP://LOCALHOST:5000/API/WORK_QUEUE',
+        '--QUEUE_IDLE_POLL_SECONDS=10',
+        '--QUEUE_BUSY_POLL_SECONDS=10',
+        '--PDIFF_TIMEOUT=20',
+        '--RELOAD_CODE',
+        '--INSPECTJS',
+        '--PORT=5000',
+        '--VERBOSE',
+        '--IGNORE_AUTH'
+    ]
+
+    all_upperfied = upper_args(args, splitter, joiner, EXCLUDE_NONE)
+
+    assert args == args, 'No mutations expected'
+    assert all_upperfied == expected_none_excluded_upper, all_upperfied
+
+    expected_left_excluded_upper = [
+        '--local_queue_workers',
+        '--phantomjs_binary=$PHANTOMJS_BINARY',
+        '--phantomjs_script=$CAPTURE_SCRIPT',
+        '--phantomJs_timeout=20',
+        '--release_server_prefix=HTTP://LOCALHOST:5000/API',
+        '--queue_server_prefix=HTTP://LOCALHOST:5000/API/WORK_QUEUE',
+        '--queue_idle_poll_seconds=10',
+        '--queue_busy_poll_seconds=10',
+        '--pdiff_timeout=20',
+        '--reload_code',
+        '--inspectJS',
+        '--port=5000',
+        '--verbose',
+        '--ignore_auth'
+    ]
+
+    left_excluded_upper = upper_args(args, splitter, joiner, EXCLUDE_LEFT)
+
+    assert args == args, 'No mutations expected'
+    assert left_excluded_upper == expected_left_excluded_upper
+
+    none_with_none = upper_args(None, splitter, joiner, EXCLUDE_LEFT)
+    assert none_with_none == None
+
+    for i in range(10):
+        assert upper_args(i, splitter, joiner, EXCLUDE_LEFT) == i
+
+    range_iter = range(305)
+    assert upper_args(range_iter, splitter, joiner, EXCLUDE_LEFT) == list(range(305))
+
+if __name__ == '__main__':
+    main()
