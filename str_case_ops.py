@@ -1,6 +1,19 @@
 #!/usr/bin/env python
 
-# Author: Emmanuel Odeke <odeke@ualberta.ca>
+# Copyright 2014 Emmanuel Odeke
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # Module to enable string operations eg
 #     case modifications ie lower(), upper()
 #  on a collection of items.
@@ -10,6 +23,10 @@ EXCLUDE_LEFT = 1
 EXCLUDE_RIGHT = 2
 
 is_callable = lambda x: x and hasattr(x, '__call__')
+
+default_joiner = lambda seq: '='.join(seq)
+default_splitter = lambda splittable: splittable.split('=') \
+                        if is_callable_attr(splittable, 'split') else splittable
 
 def is_callable_attr(obj, attr):
     value = getattr(obj, attr, None)
@@ -41,7 +58,10 @@ def translate_skip_to_range(seq_len, offset=0, skip_const=EXCLUDE_NONE):
     else:
         return range(seq_len), 1, range(0), 1 
 
-def _caseify(func, iterator, splitter, joiner, skip_const=EXCLUDE_LEFT):
+def _caseify(
+        func, iterator, splitter=default_splitter,
+        joiner=default_joiner, skip_const=EXCLUDE_LEFT):
+
     if not is_callable_attr(iterator, '__iter__'):
         return iterator
 
@@ -104,9 +124,8 @@ def main():
         '--ignore_auth'
     ]
 
-    joiner = lambda seq: '='.join(seq)
-    splitter = lambda splittable: splittable.split('=') \
-                    if is_callable_attr(splittable, 'split') else splittable
+    joiner = default_joiner
+    splitter = default_splitter
 
     expected_right_excluded = [
         '--local_queue_workers',
