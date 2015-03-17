@@ -6,7 +6,7 @@ suffixes = ["B", "kB", "mB", "gB", "tB", "pB"]
 toDescription = lambda value, i=0 : "%2.2f%s"%(value, suffixes[i])\
    if (value/1024 < 1 or i >= len(suffixes) - 1) else toDescription(value/1024, i + 1)
 def main():
-  queries = [8 * 19000000]
+  queries = [8 * 19000000, 1<<48, 1<<64]
   for query in queries:
     print(query, toDescription(query))
 
