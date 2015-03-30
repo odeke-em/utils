@@ -22,14 +22,14 @@ Element *pGen(const int p1, const int p2, const int x0, const int limit) {
 
       Element **query = get(hl, xN1);
       if (*query == NULL) {
-	int *eMem = (int *)malloc(sizeof(int));
-	int *rMem = (int *)malloc(sizeof(int));
-	*eMem = xN1;
-	*rMem = xN1;
-	insertElem(hl, eMem, xN1);
-	randValues = addToHead(randValues, rMem);
+        int *eMem = (int *)malloc(sizeof(int));
+        int *rMem = (int *)malloc(sizeof(int));
+        *eMem = xN1;
+        *rMem = xN1;
+        insertElem(hl, eMem, xN1);
+        randValues = addToHead(randValues, rMem);
       } else { // Cycle or collision detected time to end
-	break;
+        break;
       }
 
       xN = xN1;
