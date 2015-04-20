@@ -5,30 +5,48 @@
 # sort of like using parentheses to keep order of evaluation
 # Just implemented as a warm up for an exam/code kata.
 
+import math
 import operator as op
+import re
 
 Operand  = 0
 Operator = 1
-Unary = 1
-Binary = 2
+Unknown  = 2
+
+Unary  = 1 << 0
+Binary = 1 << 1
+
+operandRegCompile = re.compile('\s*(-?\d+\.?\d*)', re.UNICODE)
 
 operators = {
-    '*':    (Binary,            { Binary: op.mul }, float,),
-    '/':    (Binary,            { Binary: op.floordiv }, float,),
-    '-':    (Binary | Unary,    { Binary: op.sub, Unary: op.neg }, int,),
-    '+':    (Binary | Unary,    { Binary: op.add, Unary: op.pos }, int,),
-    '^':    (Binary,            { Unary: op.xor, Binary: op.pow }, int,),
-    '~':    (Unary,             { Unary: lambda x: ~x }, int,),
-    '&':    (Binary,            { Binary: op.iand }, int,),
-    '&&':   (Binary,            { Binary: op.and_ }, int,),
-    'and':  (Binary,            { Binary: op.and_ }, int,),
+    '*':        (Binary,            { Binary: op.mul }, float,),
+    '/':        (Binary,            { Binary: op.floordiv }, float,),
+    '-':        (Binary | Unary,    { Binary: op.sub, Unary: op.neg }, float,),
+    '+':        (Binary | Unary,    { Binary: op.add, Unary: op.pos }, float,),
+    '^':        (Binary,            { Unary: op.xor, Binary: op.pow }, int,),
+    '~':        (Unary,             { Unary: lambda x: ~x }, int,),
+    '&':        (Binary,            { Binary: op.iand }, int,),
+    '&&':       (Binary,            { Binary: op.and_ }, int,),
+    'and':      (Binary,            { Binary: op.and_ }, int,),
+    'sqrt':     (Binary,            { Binary: lambda x: math.sqrt }, float,),
+    '|':        (Binary,            { Binary: op.or_ }, int,),
+    '<':        (Binary,            { Binary: op.lt }, float,),
+    '>':        (Binary,            { Binary: op.gt }, float,),
+    'round':    (Unary,             { Unary: round }, float,),
+    'floor':    (Unary,             { Unary: math.floor }, float,),
+    'ceil':     (Unary,             { Unary: math.ceil }, float,),
+    '>>':       (Binary,            { Binary: op.rshift }, int,),
+    '<<':       (Binary,            { Binary: op.lshift }, int,),
 }
 
 def classify(v):
     if v in operators:
         return Operator
 
-    return Operand
+    if operandRegCompile.match(v):
+        return Operand
+
+    return Unknown
 
 def parser(seq_str):
     operand_stack  = []
@@ -39,6 +57,10 @@ def parser(seq_str):
 
     for v in splits:
         op_type = classify(v)
+         
+        if op_type == Unknown:
+            return Exception('Unknown operand "%s"'%(v))
+
         selector = operand_stack
 
         if op_type == Operator:
@@ -85,7 +107,7 @@ def _evaluate(operator_stack, operand_stack):
     for operator in operator_stack:
         result, ok = popper(operator, operand_stack)
         if not ok:
-            return result
+            return result, ok
 
         # Push the result back to the top of the stack
         operand_stack.insert(0, result)
@@ -104,6 +126,11 @@ def main():
     print(parser('~ 271 * 262 * 918 - 10029'))
     print(parser('1 && 0'))
     print(parser('1 and 0'))
+    print(parser('1 << 8'))
+    print(parser('512 >> 2'))
+    print(parser('2 ^ 3'))
+    print(parser('2 ** 3'))
+    print(parser('-92.9 * 3'))
 
 if __name__ == '__main__':
     main()
