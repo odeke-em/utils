@@ -28,6 +28,7 @@ default_joiner = lambda seq: '='.join(seq)
 default_splitter = lambda splittable: splittable.split('=') \
                         if is_callable_attr(splittable, 'split') else splittable
 
+
 def is_callable_attr(obj, attr):
     value = getattr(obj, attr, None)
     if not value:
@@ -35,32 +36,40 @@ def is_callable_attr(obj, attr):
 
     return is_callable(value)
 
+
 def _invoke_case_mod(case_func_name, item, *args, **kwargs):
     if not is_callable_attr(item, case_func_name):
        return item
 
     return getattr(item, case_func_name)(*args, **kwargs)
 
+
 def lower(*args, **kwargs):
     return _invoke_case_mod('lower', *args, **kwargs)
+
 
 def capitalize(*args, **kwargs):
     return _invoke_case_mod('capitalize', *args, **kwargs)
 
+
 def upper(*args, **kwargs):
     return _invoke_case_mod('upper', *args, **kwargs)
 
+
 def translate_skip_to_range(seq_len, offset=0, skip_const=EXCLUDE_NONE):
-    if skip_const == EXCLUDE_RIGHT:
+    if seq_len <= 1:
+        return range(0, seq_len), 1, range(0), 1
+    elif skip_const == EXCLUDE_RIGHT:
         return range(0 + offset, seq_len - 1), 1, range(seq_len - 1, seq_len), 0
     elif skip_const == EXCLUDE_LEFT:
         return range(offset, 1), 0, range(1 + offset, seq_len), 1
     else:
         return range(seq_len), 1, range(0), 1 
 
+
 def _caseify(
         func, iterator, splitter=default_splitter,
-        joiner=default_joiner, skip_const=EXCLUDE_LEFT):
+        joiner=default_joiner, skip_const=EXCLUDE_LEFT, offset=0):
 
     if not is_callable_attr(iterator, '__iter__'):
         return iterator
@@ -76,17 +85,17 @@ def _caseify(
 
         split_len = len(split_items)
 
-        l_iter, l_needs, r_iter, r_needs =\
-                        translate_skip_to_range(split_len, skip_const=skip_const)
+        l_iter, op_on_lhs, r_iter, op_on_rhs = translate_skip_to_range(
+                                       split_len, offset, skip_const=skip_const)
 
-        if l_needs:
+        if op_on_lhs:
             for i in l_iter:
                 sub_items.append(func(split_items[i]))
         else:
             for i in l_iter:
                 sub_items.append(split_items[i])
 
-        if r_needs:
+        if op_on_rhs:
             for j in r_iter:
                 sub_items.append(func(split_items[j]))
         else:
@@ -97,17 +106,21 @@ def _caseify(
 
     return tokens
 
+
 def lower_args(*args, **kwargs):
     return _caseify(lower, *args, **kwargs)
+
 
 def upper_args(*args, **kwargs):
     return _caseify(upper, *args, **kwargs)
 
+
 def capitalize_args(*args, **kwargs):
     return _caseify(capitalize, *args, **kwargs)
 
+
 def main():
-    args = [
+    init_args = [
         '--local_queue_workers',
         '--phantomjs_binary=$PHANTOMJS_BINARY',
         '--phantomjs_script=$CAPTURE_SCRIPT',
@@ -123,6 +136,8 @@ def main():
         '--verbose',
         '--ignore_auth'
     ]
+
+    args = init_args[:]
 
     joiner = default_joiner
     splitter = default_splitter
@@ -138,14 +153,14 @@ def main():
         '--queue_busy_poll_seconds=10',
         '--pdiff_timeout=20',
         '--reload_code',
-        '--inspectJS',
+        '--inspectjs',
         '--port=5000',
         '--verbose',
         '--ignore_auth'
     ]
     right_excluded = lower_args(args, splitter, joiner, EXCLUDE_RIGHT)
 
-    assert args == args, 'No mutations expected'
+    assert args == init_args, 'No mutations expected'
     assert right_excluded == expected_right_excluded
 
     expected_left_excluded_lower = [
@@ -159,14 +174,14 @@ def main():
         '--queue_busy_poll_seconds=10',
         '--pdiff_timeout=20',
         '--reload_code',
-        '--inspectJS',
+        '--inspectjs',
         '--port=5000',
         '--verbose',
         '--ignore_auth'
     ]
     left_excluded_lower = lower_args(args, splitter, joiner, EXCLUDE_LEFT)
 
-    assert args == args, 'No mutations expected'
+    assert args == init_args, 'No mutations expected'
     assert left_excluded_lower == expected_left_excluded_lower
 
     expected_none_excluded_upper = [
@@ -188,11 +203,11 @@ def main():
 
     all_upperfied = upper_args(args, splitter, joiner, EXCLUDE_NONE)
 
-    assert args == args, 'No mutations expected'
+    assert args == init_args, 'No mutations expected'
     assert all_upperfied == expected_none_excluded_upper, all_upperfied
 
     expected_left_excluded_upper = [
-        '--local_queue_workers',
+        '--LOCAL_QUEUE_WORKERS',
         '--phantomjs_binary=$PHANTOMJS_BINARY',
         '--phantomjs_script=$CAPTURE_SCRIPT',
         '--phantomJs_timeout=20',
@@ -201,16 +216,16 @@ def main():
         '--queue_idle_poll_seconds=10',
         '--queue_busy_poll_seconds=10',
         '--pdiff_timeout=20',
-        '--reload_code',
-        '--inspectJS',
+        '--RELOAD_CODE',
+        '--INSPECTJS',
         '--port=5000',
-        '--verbose',
-        '--ignore_auth'
+        '--VERBOSE',
+        '--IGNORE_AUTH'
     ]
 
     left_excluded_upper = upper_args(args, splitter, joiner, EXCLUDE_LEFT)
 
-    assert args == args, 'No mutations expected'
+    assert args == init_args, 'No mutations expected'
     assert left_excluded_upper == expected_left_excluded_upper
 
     none_with_none = upper_args(None, splitter, joiner, EXCLUDE_LEFT)
@@ -221,6 +236,11 @@ def main():
 
     range_iter = range(305)
     assert upper_args(range_iter, splitter, joiner, EXCLUDE_LEFT) == list(range(305))
+
+    args_in = [12, 'first=emmanuel', None]
+    mixed_none_excluded = upper_args(args_in, splitter, joiner, EXCLUDE_NONE)
+    assert mixed_none_excluded == [12, 'FIRST=EMMANUEL', None]
+
 
 if __name__ == '__main__':
     main()
