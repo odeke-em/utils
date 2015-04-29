@@ -5,9 +5,15 @@
 def noop(*args, **kwargs):
     raise ValueError('noop for this method')
 
+def is_callable_attr(obj, attr):
+    retr = getattr(obj, attr, None)
+    if retr is None:
+        return False
+    return hasattr(retr, '__call__')
+
 def generate_lowerer(obj, method_name):
     def _f(self, key, *args, **kwargs):
-        if isinstance(key, str):
+        if is_callable_attr(key, 'lower'):
             key = key.lower()
 
         super_method = getattr(self.get_super(), method_name, noop)
@@ -27,8 +33,7 @@ ref = CaseAgnosticDict
 for method_name in ref.keyable_methods:
     generated = generate_lowerer(ref, method_name)
     setattr(ref, method_name, generated)
-    assert getattr(ref, method_name) == generated, 'methods do not match'
-
+ 
 def main():
     ca_dict = CaseAgnosticDict(dock=10)
     ca_dict['Dock'] = 30
